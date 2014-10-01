@@ -15,7 +15,9 @@
 
 import sys
 from helperFunctions import *
-
+from models import *
+import simulations
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -24,11 +26,28 @@ def main():
 	landmarkGroundtrush = loadFileToLists("ds1_Landmark_Groundtruth.dat")
 	odometry = loadFileToLists("ds1_Odometry.dat")
 	measurement = loadFileToLists("ds1_Measurement.dat")
-	
-	print measurement
 
 	
+	#Execute Q2
+	testCommands = [[.5,0,1.0],[0, -1.0/(2.0*np.pi), 1.0],[.5, 0.0 , 1.0],[0.0, 1.0/(2.0*np.pi), 1.0],[.5, 0.0, 1.0]]
+	# vector = simulations.runControlSimulator([0,0,0], testCommands)
 
+	odoCommands = []
+	for i in range(len(odometry)-1):
+		odoCommands.append([float(odometry[i][1]), float(odometry[i][2]), float(odometry[i+1][0])-float(odometry[i][0])])
+
+	vector = simulations.runControlSimulator([0,0,0], odoCommands)
+
+	print vector
+
+	plotX = []
+	plotY = []
+	for line in groundTruth:
+		plotX.append(float(line[1]))
+		plotY.append(float(line[2]))
+
+	plt.scatter(plotX, plotY)
+	plt.show()
 
 
 if __name__ == '__main__':
