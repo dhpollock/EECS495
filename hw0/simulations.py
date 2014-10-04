@@ -10,8 +10,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from models import *
+from helperFunctions import *
 
-def runControlSimulator(initialConditions, commands):
+def runControlSimulator(initialConditions, commands, obstacleBool):
 	path = [initialConditions]
 	currentLocation = initialConditions
 	for command in commands:
@@ -24,7 +25,14 @@ def runControlSimulator(initialConditions, commands):
 		plotX.append(point[0])
 		plotY.append(point[1])
 
-	plt.scatter(plotX, plotY)
+	# plt.scatter(plotX, plotY)
+	if(obstacleBool):
+		plt.plot(plotX, plotY, 'b-', obstacle1.x, obstacle1.y, 'r-o', obstacle2.x, obstacle2.y, 'r-o', obstacle3.x, obstacle3.y, 'r-o')
+	else:
+		plt.plot(plotX, plotY, 'b-')
+	plt.xlabel('X Position (meters)')
+	plt.ylabel('Y Position (meters)')
+	plt.title("State Estimate Based on Command Input")
 	plt.show()
 
 	return currentLocation
