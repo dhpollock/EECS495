@@ -8,7 +8,9 @@
 #Helper Functions for HW0
 
 import math
+import numpy as np
 
+#helps load the files and pass them into lists, ignoring comments
 def loadFileToLists(fileName):
 	contents = []
 	f = open(fileName, 'r')
@@ -18,6 +20,7 @@ def loadFileToLists(fileName):
 
 	return contents
 
+#simple landmark class
 class Landmark:
 	def __init__(self, subject, xval, yval, x_std_dev, y_std_dev):
 		self.id = subject
@@ -26,7 +29,7 @@ class Landmark:
 		self.x_sd = x_std_dev
 		self.y_sd = y_std_dev
 
-
+#simple obstacle class, the assist with plotting
 class Obstacle:
 	def __init__(self, listLandmarks):
 		obstacleLandmarks = []
@@ -53,6 +56,7 @@ lm18 = Landmark(18,0.34561556,5.02433367,0.00004452,0.00004957)
 lm19 = Landmark(19,2.96594198,5.09583446,0.00006062,0.00008501)
 lm20 = Landmark(20,4.30562926,2.86663299,0.00003748,0.00004206)
 
+#landmark fetcher
 def getLandmark(id):
 	if(id == 6): return lm6
 	elif(id == 7): return lm7
@@ -80,10 +84,11 @@ obstacle2 = Obstacle([lm16, lm14, lm13])
 # #Obstacle 10, 7
 obstacle3 = Obstacle([lm10,lm7])
 
-
+#distance formula for 2-d vectors, in the format of [x,y]
 def distance(vectorOne, vectorTwo):
 	return math.sqrt(math.pow(vectorTwo[0] - vectorOne[0], 2) + math.pow(vectorTwo[1] - vectorOne[1],2))
 
+#a helper class to bunch together measurements taken at the same timestep
 class MeasurementStep:
 	def __init__(self, myTime):
 		self.time = myTime
@@ -96,12 +101,14 @@ class MeasurementStep:
 			print("Error, unable to add measurement, incorrect time stamp")
 			return
 
+#creates a hashtable for converting barcodes (provided in measurement data, to subject/landmark values
 def parseBarcode2Subject(barcodes):
 	myDict = {}
 	for entry in barcodes:
 		myDict[float(entry[1])] = float(entry[0])
 	return myDict
 
+#pareses the raw measurement lists into the MeasurementStep class for use.
 def parseMeasurements(measurementList, barcodes):
 	subjects = parseBarcode2Subject(barcodes)
 	totalMeasurements = []
@@ -119,6 +126,10 @@ def parseMeasurements(measurementList, barcodes):
 
 	return totalMeasurements
 
-
+#helper function for returning a random sample from a gaussian distrobution along with its probabilty value (aka weight)
+def randomGaussianPointAndProb(mean, std):
+	point = np.random.normal(mean, std)
+	prob = 1/(std * np.sqrt(2 * np.pi)) * np.exp( - (point - mean)**2 / (2 * std**2))
+	return [point, prob]
 
 

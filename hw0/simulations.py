@@ -37,3 +37,28 @@ def runControlSimulator(initialConditions, commands, obstacleBool):
 
 	return currentLocation
 
+
+
+class ParticleFilter:
+	def __init__(self, initialStateVector, initialStateProbabiltyFunctionList, probFunctionArgs, numberOfParticles):
+		self.m = numberOfParticles
+		self.X = []
+		if(len(initialStateVector) != len(initialStateProbabiltyFunctionList)):
+			return "Error, length of state vector and prob functino list are not equal"
+		else:
+			for i in range(self.m):
+				entry = []
+				for j in range(len(initialStateVector)):
+					entry.append(initialStateProbabiltyFunctionList[j](initialStateVector[j], probFunctionArgs[j]))
+				self.X.append(entry)
+
+			print(self.X[0])
+
+
+	def updateStep(self, command, measurement):
+		pass
+	def resampleStemp(self):
+		pass
+	def getStateProb(self):
+		pass
+	
