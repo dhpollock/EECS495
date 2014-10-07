@@ -73,7 +73,7 @@ def q5(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	plotX = []
 	plotY = []
-	for command in myCommands[0:1000]:
+	for command in myCommands:
 		timeMin = command[2]
 		timeMax = command[2]+command[3]
 		[myMeasurements, curMeasurements] = getMeasurements(myMeasurements, timeMin, timeMax)
