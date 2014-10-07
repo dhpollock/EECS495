@@ -73,14 +73,19 @@ def q5(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	plotX = []
 	plotY = []
+	plotOdoX = [0.98038490]
+	plotOdoY = [-4.99232180]
+	plotOdoRot = [1.44849633]
 	for command in myCommands:
 		timeMin = command[2]
 		timeMax = command[2]+command[3]
 		[myMeasurements, curMeasurements] = getMeasurements(myMeasurements, timeMin, timeMax)
 		# print(command)
-		myPF.updateStep(command, curMeasurements)
-		myPF.normalizeWeights()
-		myPF.resampleStep()
+		if(command[0] != 0 or command[1] != 0):
+			myPF.updateStep(command, curMeasurements)
+			myPF.normalizeWeights()
+			if(curMeasurements != []):
+				myPF.resampleStep()
 		[tempX, tempY, tempRot] = myPF.getMean()
 		# print("=====new step=====")
 		# print(command)
@@ -90,8 +95,19 @@ def q5(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		plotX.append(tempX)
 		plotY.append(tempY)
 
+		vector = simulatedControllerEstimate([plotOdoX[len(plotOdoX)-1], plotOdoY[len(plotOdoY)-1], plotOdoRot[len(plotOdoRot)-1]], command[0], command[1], command[3])
+		plotOdoX.append(vector[0])
+		plotOdoY.append(vector[1])
+		plotOdoRot.append(vector[2])
 
-	plt.plot(plotX, plotY, 'b-', obstacle1.x, obstacle1.y, 'r-o', obstacle2.x, obstacle2.y, 'r-o', obstacle3.x, obstacle3.y, 'r-o')
+	plotXGT = []
+	plotYGT = []
+	for line in groundTruth:
+		plotXGT.append(float(line[1]))
+		plotYGT.append(float(line[2]))
+
+
+	plt.plot(plotX, plotY, 'b-', plotXGT, plotYGT, 'g-', plotOdoX, plotOdoY, 'y--', obstacle1.x, obstacle1.y, 'r-o', obstacle2.x, obstacle2.y, 'r-o', obstacle3.x, obstacle3.y, 'r-o')
 
 	plt.xlabel('X Position (meters)')
 	plt.ylabel('Y Position (meters)')

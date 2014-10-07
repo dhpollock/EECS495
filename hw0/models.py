@@ -42,8 +42,11 @@ def expectedMeasurement(posVector, landmarkID):
 
 #given a measurement value, provide a weight, assuming that measuredZ is on a gaussian distrobution
 def getImportanceFactor(measuredZ, expectedZ):
-	R = 0.001 #our covarience, let it be 0.1 for now
-	iF = 1/np.sqrt(2 * np.pi * R)*np.exp(-math.pow(expectedZ - measuredZ,2)/(2*R))
+	R = 1.0 #our covarience, let it be 0.1 for now
+	# iF = 1/np.sqrt(2 * np.pi * R)*np.exp(-math.pow(expectedZ - measuredZ,2)/(2*R))
+	dif = [expectedZ[0] - measuredZ[0], expectedZ[1] - measuredZ[1]]
+	iF = 1/np.sqrt(2 * np.pi * R)*np.exp(-(dif[0]*dif[0]+ dif[1]*dif[1])/(2*R))
+
 	return iF
 
 

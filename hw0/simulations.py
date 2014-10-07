@@ -76,11 +76,12 @@ class ParticleFilter:
 					for landmarkMeasure in timeStep.landmarkMeasurements:
 						if(landmarkMeasure[0] > 5):
 							expected = expectedMeasurement(point, landmarkMeasure[0])
-							iF = iF + getImportanceFactor(expected[0], landmarkMeasure[2])
-							iF = iF + getImportanceFactor(expected[1], landmarkMeasure[3])
-						else:
-							iF = self.X[i][1]
-						n = n+1.0
+							# iF = iF + getImportanceFactor(expected[0], landmarkMeasure[2])
+							# iF = iF + getImportanceFactor(expected[1], landmarkMeasure[3])
+							iF = iF + getImportanceFactor(expected, [landmarkMeasure[2], landmarkMeasure[3]])
+						# else:
+						# 	iF = self.X[i][1]
+							n = n+1.0
 				if(iF != 0):
 					iF = iF/n
 				else:
@@ -110,6 +111,16 @@ class ParticleFilter:
 		else:
 			return [0, 0 , 0]
 
+	def getMaxKernalDesnity(self):
+		pass
+
+	def getHistogramMax(self):
+		xVals = [x for [[x,y,rot], iF] in self.X]
+		# print(xVals)
+		yVals = [y for [[x,y,rot], iF] in self.X]
+		rotVals = [rot for [[x,y,rot], iF] in self.X]
+		pass
+
 	def normalizeWeights(self):
 		myWeights = [iF for [[x,y,rot], iF] in self.X]
 		myWeightSum = sum(myWeights)
@@ -123,8 +134,13 @@ class ParticleFilter:
 		weightCumSum = np.cumsum(myWeights)
 		# print myWeights
 		for i in range(self.m):
-			if(np.random.rand() < 0.005):
-				self.newX.append([[randomGaussianPointAndProb(self.xMean, 0.1)[0], randomGaussianPointAndProb(self.yMean, 0.1)[0], randomGaussianPointAndProb(self.rotMean, 0.1)[0]], .0000001])
+			filterNum = np.random.rand()
+			# if(filterNum < 0.00005):
+				# self.newX.append([[randomGaussianPointAndProb(self.xMean, 0.125)[0], randomGaussianPointAndProb(self.yMean, 0.125)[0], randomGaussianPointAndProb(self.rotMean, 2*np.pi/64.0)[0]], 1/(2*self.m)])
+				# self.newX.append([[7*np.random.rand()-2, 12*np.random.rand()-6, 2*np.pi*np.random.rand()], 1/(1000*self.m)])
+			if(filterNum >= 0 and filterNum < 0.2):
+				self.newX.append([[randomGaussianPointAndProb(self.xMean, 3*0.125)[0], randomGaussianPointAndProb(self.yMean, 3*0.125)[0], randomGaussianPointAndProb(self.rotMean, 3*2*np.pi/64.0)[0]], 1/(10*self.m)])
+
 			else:
 				index = (np.array([],), )
 				n = 0
