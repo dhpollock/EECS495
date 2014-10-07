@@ -60,11 +60,45 @@ def q4(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	myMeasurements = parseMeasurements(measurement, barcodes)
 	print(myMeasurements[0].landmarkMeasurements[0])
 	# print(myMeasurements[1].landmarkMeasurements)
-	print(simulations.expectedMeasurement([0.98038490,-4.99232180,1.44849633], 13))
+	print(simulations.expectedMeasurement([0.98038490,-4.99232180,1.44849633], myMeasurements[0].landmarkMeasurements[0][0]))
 
 def q5(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
-	myPF = simulations.ParticleFilter([0.98038490,-4.99232180,1.44849633], [randomGaussianPointAndProb, randomGaussianPointAndProb, randomGaussianPointAndProb], [0.1, 0.1, 0.05], 100)
+	myPF = simulations.ParticleFilter([0.98038490,-4.99232180,1.44849633], [randomGaussianPointAndProb, randomGaussianPointAndProb, randomGaussianPointAndProb], [0.1, 0.1, 0.05], 500)
+	myMeasurements = parseMeasurements(measurement, barcodes)
+	myCommands = []
+	for i in range(len(odometry)-1):
+		myCommands.append([float(odometry[i][1]), float(odometry[i][2]), float(odometry[i][0]), float(odometry[i+1][0])-float(odometry[i][0])])
+
+
+	plotX = []
+	plotY = []
+	for command in myCommands[0:1000]:
+		timeMin = command[2]
+		timeMax = command[2]+command[3]
+		[myMeasurements, curMeasurements] = getMeasurements(myMeasurements, timeMin, timeMax)
+		# print(command)
+		myPF.updateStep(command, curMeasurements)
+		myPF.normalizeWeights()
+		myPF.resampleStep()
+		[tempX, tempY, tempRot] = myPF.getMean()
+		# print("=====new step=====")
+		# print(command)
+		# if(curMeasurements != []):
+		# 	print(curMeasurements[0].landmarkMeasurements)
+		# print(tempX, tempY)
+		plotX.append(tempX)
+		plotY.append(tempY)
+
+
+	plt.plot(plotX, plotY, 'b-', obstacle1.x, obstacle1.y, 'r-o', obstacle2.x, obstacle2.y, 'r-o', obstacle3.x, obstacle3.y, 'r-o')
+
+	plt.xlabel('X Position (meters)')
+	plt.ylabel('Y Position (meters)')
+	plt.title("Mean PF Position Estimate")
+	plt.show()
+
+
 
 def main():
 	barcodes = loadFileToLists("ds1_Barcodes.dat")

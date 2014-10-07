@@ -9,6 +9,7 @@
 
 import math
 import numpy as np
+from scipy import integrate
 
 #helps load the files and pass them into lists, ignoring comments
 def loadFileToLists(fileName):
@@ -100,6 +101,22 @@ class MeasurementStep:
 		else:
 			print("Error, unable to add measurement, incorrect time stamp")
 			return
+def getMeasurements(measurementStepList, minTime, maxTime):
+	newMeasurementStepList = measurementStepList
+	foundAll = False
+	curMeasurements = []
+	while(foundAll == False):
+		if(len(newMeasurementStepList)>0):
+			if(newMeasurementStepList[0].time < minTime):
+				del newMeasurementStepList[0]
+			elif(newMeasurementStepList[0].time >= maxTime):
+				foundAll = True;
+				return [newMeasurementStepList,curMeasurements]
+			else:
+				curMeasurements.append(newMeasurementStepList[0])
+				del newMeasurementStepList[0]
+		else:
+			return[newMeasurementStepList, []]
 
 #creates a hashtable for converting barcodes (provided in measurement data, to subject/landmark values
 def parseBarcode2Subject(barcodes):

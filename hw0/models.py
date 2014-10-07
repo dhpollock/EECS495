@@ -10,6 +10,7 @@
 from scipy import integrate
 import numpy as np
 from helperFunctions import *
+import math
 
 #Simulated Controller To Estimate Position and Heading
 #Input: [Prior x,y,rot Estimates], Translational Speed Command, 
@@ -41,8 +42,8 @@ def expectedMeasurement(posVector, landmarkID):
 
 #given a measurement value, provide a weight, assuming that measuredZ is on a gaussian distrobution
 def getImportanceFactor(measuredZ, expectedZ):
-	R = 0.1 #our covarience, let it be 0.1 for now
-	iF = 1/np.sqrt(2 * np.pi * R)*np.exp(-np.pow(expectedZ - measuredZ,2)/(2*R))
+	R = 0.001 #our covarience, let it be 0.1 for now
+	iF = 1/np.sqrt(2 * np.pi * R)*np.exp(-math.pow(expectedZ - measuredZ,2)/(2*R))
 	return iF
 
 
