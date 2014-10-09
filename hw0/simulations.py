@@ -40,17 +40,20 @@ def runControlSimulator(initialConditions, commands, obstacleBool):
 
 
 class ParticleFilter:
-	def __init__(self, initialStateVector, initialStateProbabiltyFunctionList, probFunctionArgs, numberOfParticles):
-		self.m = numberOfParticles
-		self.X = []
-		self.newX = []
-		self.xMean = initialStateVector[0]
-		self.yMean = initialStateVector[1]
-		self.rotMean = initialStateVector[2]
-		
-		if(len(initialStateVector) != len(initialStateProbabiltyFunctionList)):
+    def __init__(self, initialStateVector, initialStateProbabiltyFunctionList, probFunctionArgs, numberOfParticles):
+        self.m = numberOfParticles
+        self.X = []
+        self.newX = []
+        self.xMean = initialStateVector[0]
+        self.yMean = initialStateVector[1]
+        self.rotMean = initialStateVector[2]
+        self.xMeanList = [initialStateVector[0],]
+        self.yMeanList = [initialStateVector[1],]
+        self.rotMeanList = [initialStateVector[2],]
+
+        if(len(initialStateVector) != len(initialStateProbabiltyFunctionList)):
 			return "Error, length of state vector and prob functino list are not equal"
-		else:
+        else:
 			for i in range(self.m):
 				posVector = []
 				posiF = 0
@@ -63,8 +66,8 @@ class ParticleFilter:
 			# print(self.X[0])
 
 
-	def updateStep(self, command, measurement):
-		
+    def updateStep(self, command, measurement):
+
 		for i in range(self.m):
 			entry = []
 			#fill in newX with commandstep
@@ -96,7 +99,7 @@ class ParticleFilter:
 
 		# print(self.X[0])
 
-	def getMean(self):
+    def getMean(self):
 		xVals = [x for [[x,y,rot], iF] in self.X]
 		# print(xVals)
 		yVals = [y for [[x,y,rot], iF] in self.X]
@@ -111,37 +114,98 @@ class ParticleFilter:
 		else:
 			return [0, 0 , 0]
 
-	def getMaxKernalDesnity(self):
+
+    def getMeanSmoothed(self):
+        xVals = [x for [[x,y,rot], iF] in self.X]
+        # print(xVals)
+        yVals = [y for [[x,y,rot], iF] in self.X]
+        rotVals = [rot for [[x,y,rot], iF] in self.X]
+
+        if(len(xVals) > 0 and len(yVals) > 0 and len(rotVals) > 0):
+            xMean = sum(xVals)/len(xVals)
+            yMean = sum(yVals)/len(yVals)
+            rotMean = sum(rotVals)/len(rotVals)
+            newEntry = [xMean, yMean, rotMean]
+
+            if(len(self.xMeanList)> 10):
+                del self.xMeanList[0]
+                del self.yMeanList[0]
+                del self.rotMeanList[0]
+
+                self.xMeanList.append(xMean)
+                self.yMeanList.append(yMean)
+                self.rotMeanList.append(rotMean)
+
+                self.xMean = sum(self.xMeanList)/len(self.xMeanList)
+                self.yMean = sum(self.yMeanList)/len(self.yMeanList)
+                self.rotMean = sum(self.rotMeanList)/len(self.rotMeanList)
+                return [self.xMean, self.yMean, self.rotMean]
+            else:
+                self.xMeanList.append(xMean)
+                self.yMeanList.append(yMean)
+                self.rotMeanList.append(rotMean)
+
+                self.xMean = sum(self.xMeanList)/len(self.xMeanList)
+                self.yMean = sum(self.yMeanList)/len(self.yMeanList)
+                self.rotMean = sum(self.rotMeanList)/len(self.rotMeanList)
+                return [self.xMean, self.yMean, self.rotMean]
+        else:
+            return [0, 0 , 0]
+
+    def getMaxKernalDesnity(self):
 		pass
 
-	def getHistogramMax(self):
-		xVals = [x for [[x,y,rot], iF] in self.X]
-		# print(xVals)
-		yVals = [y for [[x,y,rot], iF] in self.X]
-		rotVals = [rot for [[x,y,rot], iF] in self.X]
-		pass
+    def getHistogramMax(self):
+        xVals = [x for [[x,y,rot], iF] in self.X]
+        # print(xVals)
+        yVals = [y for [[x,y,rot], iF] in self.X]
+        rotVals = [rot for [[x,y,rot], iF] in self.X]
 
-	def normalizeWeights(self):
+        myWeights = [iF for [[x,y,rot], iF] in self.X]
+        if(len(xVals) > 0 and len(yVals) > 0 and len(rotVals) > 0):
+            xhist, xbin_edges = np.histogram(xVals, bins = 5, normed = True, weights = myWeights)
+            xi = np.argmax(xhist)
+            self.xMean = xbin_edges[xi] + np.diff(xbin_edges)[xi]/2
+
+            yhist, ybin_edges = np.histogram(yVals, bins = 5, normed = True, weights = myWeights)
+            yi = np.argmax(yhist)
+            self.yMean = ybin_edges[yi] + np.diff(ybin_edges)[yi]/2
+
+            rothist, rotbin_edges = np.histogram(rotVals, bins = 5, normed = True, weights = myWeights)
+            roti = np.argmax(rothist)
+            self.rotMean = rotbin_edges[roti] + np.diff(rotbin_edges)[roti]/2
+            return [self.xMean, self.yMean, self.rotMean]
+        else:
+            return [0, 0 , 0]
+##        myWeights = [iF for [[x,y,rot], iF] in self.X]
+##        vectors = myWeights = [pos for [pos, iF] in self.X]
+##        hist, bin_edge = np.histogramdd(vectors, bins = (20,20,20), normed = True, weights = myWeights)
+##        i = np.where(hist >= np.max(hist)- .00001)[0][0]
+##        return []
+
+
+    def normalizeWeights(self):
 		myWeights = [iF for [[x,y,rot], iF] in self.X]
 		myWeightSum = sum(myWeights)
 		if(myWeightSum != 0.0):
 			for i in range(self.m):
 				self.X[i][1] = self.X[i][1]/myWeightSum
 
-	def resampleStep(self):
-		myWeights = [iF for [[x,y,rot], iF] in self.X]
-		myWeights = np.array(myWeights)
-		weightCumSum = np.cumsum(myWeights)
-		# print myWeights
-		for i in range(self.m):
-			filterNum = np.random.rand()
-			# if(filterNum < 0.00005):
-				# self.newX.append([[randomGaussianPointAndProb(self.xMean, 0.125)[0], randomGaussianPointAndProb(self.yMean, 0.125)[0], randomGaussianPointAndProb(self.rotMean, 2*np.pi/64.0)[0]], 1/(2*self.m)])
-				# self.newX.append([[7*np.random.rand()-2, 12*np.random.rand()-6, 2*np.pi*np.random.rand()], 1/(1000*self.m)])
-			if(filterNum >= 0 and filterNum < 0.2):
-				self.newX.append([[randomGaussianPointAndProb(self.xMean, 3*0.125)[0], randomGaussianPointAndProb(self.yMean, 3*0.125)[0], randomGaussianPointAndProb(self.rotMean, 3*2*np.pi/64.0)[0]], 1/(10*self.m)])
-
-			else:
+    def resampleStep(self):
+        myWeights = [iF for [[x,y,rot], iF] in self.X]
+        myWeights = np.array(myWeights)
+        weightCumSum = np.cumsum(myWeights)
+        # print myWeights
+        for i in range(self.m):
+            filterNum = np.random.rand()
+##            if(filterNum < 0.00005):
+####				self.newX.append([[randomGaussianPointAndProb(self.xMean, 0.125)[0], randomGaussianPointAndProb(self.yMean, 0.125)[0], randomGaussianPointAndProb(self.rotMean, 2*np.pi/64.0)[0]], 1/(2*self.m)])
+##                self.newX.append([[7*np.random.rand()-2, 12*np.random.rand()-6, 2*np.pi*np.random.rand()], 1/(1000*self.m)])
+            if(filterNum >= 0 and filterNum < 0.2):
+                self.newX.append([[randomGaussianPointAndProb(self.xMean, 3*0.125)[0], randomGaussianPointAndProb(self.yMean, 3*0.125)[0], randomGaussianPointAndProb(self.rotMean, 3*2*np.pi/64.0)[0]], 1/(10*self.m)])
+            elif(filterNum >= .2 and filterNum < .25):
+                self.newX.append([[randomGaussianPointAndProb(self.xMean, 1*0.125)[0], randomGaussianPointAndProb(self.yMean, 1*0.125)[0], randomGaussianPointAndProb(self.rotMean, 1*2*np.pi/64.0)[0]], 1/(10*self.m)])
+            else:
 				index = (np.array([],), )
 				n = 0
 				while(index[0].size < 1 and n < 10):
@@ -156,11 +220,10 @@ class ParticleFilter:
 					print(myWeights)
 					print(weightCumSum)
 					self.newX.append(self.X[i])
-		self.X = self.newX
-		self.newX = []
+    	self.X = self.newX
+    	self.newX = []
 
 
+    def getStateProb(self):
 		pass
-	def getStateProb(self):
-		pass
-	
+

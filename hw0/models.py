@@ -13,7 +13,7 @@ from helperFunctions import *
 import math
 
 #Simulated Controller To Estimate Position and Heading
-#Input: [Prior x,y,rot Estimates], Translational Speed Command, 
+#Input: [Prior x,y,rot Estimates], Translational Speed Command,
 #		Rotational Speed Command, Time Duration
 #Output: [x-position estimate, y-position estimate, rotational-position estimate]
 # Model:
@@ -30,7 +30,7 @@ def simulatedControllerEstimate(posVector, tranSpeedCommand, rotSpeedCommand, ti
 
 	rot2 = lambda t: rotSpeedCommand
 	rot = posVector[2] + integrate.quad(rot2, 0.0, timeDuration)[0]
-	
+
 	return [x, y, rot]
 
 #given a state positioin predict the measurement value of a given landmark
@@ -42,7 +42,7 @@ def expectedMeasurement(posVector, landmarkID):
 
 #given a measurement value, provide a weight, assuming that measuredZ is on a gaussian distrobution
 def getImportanceFactor(measuredZ, expectedZ):
-	R = 1.0 #our covarience, let it be 0.1 for now
+	R = .25 #our covarience, let it be 0.1 for now
 	# iF = 1/np.sqrt(2 * np.pi * R)*np.exp(-math.pow(expectedZ - measuredZ,2)/(2*R))
 	dif = [expectedZ[0] - measuredZ[0], expectedZ[1] - measuredZ[1]]
 	iF = 1/np.sqrt(2 * np.pi * R)*np.exp(-(dif[0]*dif[0]+ dif[1]*dif[1])/(2*R))

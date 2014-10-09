@@ -52,7 +52,7 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	plt.xlabel('X Position (meters)')
 	plt.ylabel('Y Position (meters)')
 	plt.title("Ground Truth Position")
-	plt.show()	
+	plt.show()
 
 def q4(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
@@ -76,7 +76,7 @@ def q5(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	plotOdoX = [0.98038490]
 	plotOdoY = [-4.99232180]
 	plotOdoRot = [1.44849633]
-	for command in myCommands:
+	for command in myCommands:#[0:2000]:
 		timeMin = command[2]
 		timeMax = command[2]+command[3]
 		[myMeasurements, curMeasurements] = getMeasurements(myMeasurements, timeMin, timeMax)
@@ -86,7 +86,8 @@ def q5(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 			myPF.normalizeWeights()
 			if(curMeasurements != []):
 				myPF.resampleStep()
-		[tempX, tempY, tempRot] = myPF.getMean()
+		[tempX, tempY, tempRot] = myPF.getMeanSmoothed()
+##		[tempX, tempY, tempRot] = myPF.getHistogramMax()
 		# print("=====new step=====")
 		# print(command)
 		# if(curMeasurements != []):
@@ -102,7 +103,7 @@ def q5(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	plotXGT = []
 	plotYGT = []
-	for line in groundTruth:
+	for line in groundTruth:#[0:20000]:
 		plotXGT.append(float(line[1]))
 		plotYGT.append(float(line[2]))
 
@@ -123,7 +124,7 @@ def main():
 	odometry = loadFileToLists("ds1_Odometry.dat")
 	measurement = loadFileToLists("ds1_Measurement.dat")
 
-	
+
 	while(True):
 		command = raw_input("Command: ")
 
