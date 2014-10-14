@@ -60,8 +60,8 @@ def q8(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		myCommands.append([float(testCommands[i][1]), float(testCommands[i][2]), float(testCommands[i][0]), float(testCommands[i+1][0])-float(testCommands[i][0])])
 
 	##track points for plotting
-	plotX = []
-	plotY = []
+	plotX = [0,]
+	plotY = [0,]
 	plotOdoX = [0.0]
 	plotOdoY = [0.0]
 	plotOdoRot = [0.0]
@@ -72,7 +72,7 @@ def q8(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 			myPF.updateStep(command, [])
 			myPF.normalizeWeights()
 			myPF.resampleStep()
-		[tempX, tempY, tempRot] = myPF.getMeanSmoothed()
+		[tempX, tempY, tempRot] = myPF.getMean()
 
 		plotX.append(tempX)
 		plotY.append(tempY)
@@ -181,7 +181,7 @@ def q9(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	##Start the particle filter with commands, the range for which the p.f. runs 
 	##can be adjusted here, but commenting out or change the range of myCommands
-	for command in myCommands[0:2000]:
+	for command in myCommands:#[0:2000]:
 		
 		##determine the current time step of the commands and find the range of acceptable measurements
 		##for comparision
@@ -221,7 +221,7 @@ def q9(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	##plot the ground truth as well
 	plotXGT = []
 	plotYGT = []
-	for line in groundTruth[0:25000]:
+	for line in groundTruth:#[0:25000]:
 		plotXGT.append(float(line[1]))
 		plotYGT.append(float(line[2]))
 
@@ -236,7 +236,7 @@ def q9(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	plt.xlabel('X Position (meters)')
 	plt.ylabel('Y Position (meters)')
 	plt.legend([blue_line, green_line, yellow_line, obstacle_line], ['P.F. Path', 'Ground Truth', 'Controller Estimate', 'Obstacles'])
-	plt.title("Mean PF Position Estimate -- R = 10.0")
+	plt.title("Mean PF Position Estimate")
 	plt.show()
 
 

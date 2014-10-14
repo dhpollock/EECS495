@@ -32,32 +32,33 @@ def simulatedControllerEstimate(posVector, tranSpeedCommandInput, rotSpeedComman
 	rotSpeedCommand = rotSpeedCommandInput# + 0.075*(.5 - np.random.randn())
 
 	##====State Quations====##
-	## I had two sets of equations to define the motion model, in the end the functionally the same:
+	## I had two sets of equations to define the motion model, in the end the functionally the same,
+	## but using the other formulas as they are computationally more efficient
 
 	## == Equations I came up with independently == ##
 
-	x2 = lambda t: np.cos(posVector[2] + rotSpeedCommand*t)
-	x = posVector[0] + tranSpeedCommand * integrate.quad(x2, 0.0, timeDuration)[0]
+	# x2 = lambda t: np.cos(posVector[2] + rotSpeedCommand*t)
+	# x = posVector[0] + tranSpeedCommand * integrate.quad(x2, 0.0, timeDuration)[0]
 
-	y2 = lambda t: np.sin(posVector[2] + rotSpeedCommand * t)
-	y = posVector[1] + tranSpeedCommand*integrate.quad(y2, 0.0, timeDuration)[0]
+	# y2 = lambda t: np.sin(posVector[2] + rotSpeedCommand * t)
+	# y = posVector[1] + tranSpeedCommand*integrate.quad(y2, 0.0, timeDuration)[0]
 
-	rot2 = lambda t: rotSpeedCommand
-	rot = posVector[2] + integrate.quad(rot2, 0.0, timeDuration)[0]
+	# rot2 = lambda t: rotSpeedCommand
+	# rot = posVector[2] + integrate.quad(rot2, 0.0, timeDuration)[0]
 
 	## ==Equations sourced for Probalistic Robotics formaula 5.9, pg 101 == ##
 
-	# if(rotSpeedCommand == 0.0):
-	# 	x = posVector[0] + tranSpeedCommand * np.cos(posVector[2]+ rotSpeedCommand*timeDuration)*timeDuration
-	# else:
-	# 	x = posVector[0] - tranSpeedCommand/rotSpeedCommand*np.sin(posVector[2]) + tranSpeedCommand/rotSpeedCommand * np.sin(posVector[2]+ rotSpeedCommand*timeDuration)
+	if(rotSpeedCommand == 0.0):
+		x = posVector[0] + tranSpeedCommand * np.cos(posVector[2]+ rotSpeedCommand*timeDuration)*timeDuration
+	else:
+		x = posVector[0] - tranSpeedCommand/rotSpeedCommand*np.sin(posVector[2]) + tranSpeedCommand/rotSpeedCommand * np.sin(posVector[2]+ rotSpeedCommand*timeDuration)
 	
-	# if(rotSpeedCommand == 0.0):
-	# 	y = posVector[1] +tranSpeedCommand * np.sin(posVector[2]+ rotSpeedCommand*timeDuration)*timeDuration
-	# else:
-	# 	y = posVector[1] + tranSpeedCommand/rotSpeedCommand*np.cos(posVector[2]) - tranSpeedCommand/rotSpeedCommand * np.cos(posVector[2]+ rotSpeedCommand*timeDuration)
+	if(rotSpeedCommand == 0.0):
+		y = posVector[1] +tranSpeedCommand * np.sin(posVector[2]+ rotSpeedCommand*timeDuration)*timeDuration
+	else:
+		y = posVector[1] + tranSpeedCommand/rotSpeedCommand*np.cos(posVector[2]) - tranSpeedCommand/rotSpeedCommand * np.cos(posVector[2]+ rotSpeedCommand*timeDuration)
 	
-	# rot = posVector[2] + rotSpeedCommand*timeDuration
+	rot = posVector[2] + rotSpeedCommand*timeDuration
 
 	return [x, y, rot]
 

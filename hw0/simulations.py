@@ -386,6 +386,9 @@ class ParticleFilter:
 
         ## create a cummalitive sum array, so a randomly generated number will index 
         ## proportioanlly to the weights of the given points
+        ## This idea was borrowed from Student Daves Particle Filter tutorials:
+        ## 		https://www.youtube.com/watch?v=HZvF8KlFoWk
+        ## 		http://studentdavestutorials.weebly.com/particle-filter-with-matlab-code.html
         weightCumSum = np.cumsum(myWeights)
 
 
