@@ -149,4 +149,9 @@ def randomGaussianPointAndProb(mean, std):
 	prob = 1/(std * np.sqrt(2 * np.pi)) * np.exp( - (point - mean)**2 / (2 * std**2))
 	return [point, prob]
 
+def uniformProb(pos, size):
+	point = 20*np.random.rand() - 10.0
+	return[point, 1.0/size]
 
+# def singleProb(pos, size):
+# 	return[pos, 1.0/size]
