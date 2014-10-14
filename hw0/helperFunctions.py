@@ -5,13 +5,21 @@
 ##Assignment: hw0
 ##File Name: helperFunctions.py
 
-#Helper Functions for HW0
+##Helper Functions for HW0
 
 import math
 import numpy as np
 from scipy import integrate
 
-#helps load the files and pass them into lists, ignoring comments
+
+## loadFileToLists Function
+##
+##	helps load the files and pass them into lists, ignoring comments
+##
+##Input: 
+##		a file name
+##Output:
+##		returns a list of lists of the file content, still in string format
 def loadFileToLists(fileName):
 	contents = []
 	f = open(fileName, 'r')
@@ -21,7 +29,15 @@ def loadFileToLists(fileName):
 
 	return contents
 
-#simple landmark class
+## Landmark Class
+##
+##	holds the landmarks data
+##
+##Input: 
+##		the init requires the landmark data
+##			
+##Output:
+##		none
 class Landmark:
 	def __init__(self, subject, xval, yval, x_std_dev, y_std_dev):
 		self.id = subject
@@ -30,7 +46,15 @@ class Landmark:
 		self.x_sd = x_std_dev
 		self.y_sd = y_std_dev
 
-#simple obstacle class, the assist with plotting
+## Obstacle Class
+##
+##	simple obstacle class, the assist with plotting
+##
+##Input: 
+##		the init requires a list of landmarks in the connected order
+##			
+##Output:
+##		none
 class Obstacle:
 	def __init__(self, listLandmarks):
 		obstacleLandmarks = []
@@ -40,7 +64,7 @@ class Obstacle:
 		self.x = [landmark.x for landmark in obstacleLandmarks]
 		self.y = [landmark.y for landmark in obstacleLandmarks]
 
-#hardcode landmarks for plotting for now:
+## Hardcode landmarks for plotting for now:
 lm6 = Landmark(6,1.88032539,-5.57229508,0.00001974,0.00004067) 
 lm7 = Landmark(7,1.77648406,-2.44386354,0.00002415,0.00003114)
 lm8 = Landmark(8,4.42330143,-4.98170313,0.00010428,0.00010507)
@@ -57,7 +81,15 @@ lm18 = Landmark(18,0.34561556,5.02433367,0.00004452,0.00004957)
 lm19 = Landmark(19,2.96594198,5.09583446,0.00006062,0.00008501)
 lm20 = Landmark(20,4.30562926,2.86663299,0.00003748,0.00004206)
 
-#landmark fetcher
+## getLandmark function
+##
+##	a simple landmark getter function
+##
+##Input: 
+##		landmark id value
+##			
+##Output:
+##		the landmark class object for that id
 def getLandmark(id):
 	if(id == 6): return lm6
 	elif(id == 7): return lm7
@@ -76,24 +108,60 @@ def getLandmark(id):
 	elif(id == 20): return lm20
 	else: return None
 
-#Obstacle Outside 17, 15, 10, 9, 6, 8, 11, 12, 20, 19, 18
+## Hardcode the obstacle shapes for now:
+
+##Obstacle Outside 17, 15, 10, 9, 6, 8, 11, 12, 20, 19, 18
 obstacle1 = Obstacle([lm17, lm15, lm10, lm9, lm6, lm8, lm11, lm12, lm20, lm19, lm18, lm17])
 
-# #Obstacle 16,14,13
+## Obstacle 16,14,13
 obstacle2 = Obstacle([lm16, lm14, lm13])
 
-# #Obstacle 10, 7
+## Obstacle 10, 7
 obstacle3 = Obstacle([lm10,lm7])
 
-#distance formula for 2-d vectors, in the format of [x,y]
+
+## distance function
+##
+##	distance formula for 2-d vectors, in the format of [x,y]
+##
+##Input: 
+##		2d vector
+##		2d vector
+##			
+##Output:
+##		distance value
 def distance(vectorOne, vectorTwo):
 	return math.sqrt(math.pow(vectorTwo[0] - vectorOne[0], 2) + math.pow(vectorTwo[1] - vectorOne[1],2))
 
-#a helper class to bunch together measurements taken at the same timestep
+
+
+## Measurement Step Class
+##
+##	a helper class to bunch together measurements taken at the same timestep
+##
+##Input: 
+##		the init requires a the time value for the step
+##			
+##Output:
+##		none
 class MeasurementStep:
 	def __init__(self, myTime):
 		self.time = myTime
 		self.landmarkMeasurements = []
+
+	## addLandmarkMeasurement function
+	##
+	##	adds a landmark measurement for the current time step
+	##
+	##Input: 
+	##		time stamp
+	##		subject id
+	##		barcode id 
+	##		range measurement reading
+	##		bearing measurement reading
+	##			
+	##Output:
+	##		none
 
 	def addLandmarkMeasurement(self, time, subject, barcode, myRange, myBearing):
 		if(time == self.time):
@@ -101,57 +169,134 @@ class MeasurementStep:
 		else:
 			print("Error, unable to add measurement, incorrect time stamp")
 			return
+
+## getMeasurements function
+##
+##	takes of list of measurement time steps and pops those within the provided time frame
+##	and removes any extra readings below the time min
+##
+##Input: 
+##		list of measurement step objects
+##		min time value for timesteps to pop
+##		man time value for timesteps to pop
+##			
+##Output:
+##		a list of remeaining time steps for future list
+##		a list of timesteps within the provided min/max bounds
 def getMeasurements(measurementStepList, minTime, maxTime):
+	##create modifyable list
 	newMeasurementStepList = measurementStepList
 	foundAll = False
 	curMeasurements = []
+
+	##go until we are above our current max timestamp
 	while(foundAll == False):
+
 		if(len(newMeasurementStepList)>0):
+			
+			## remove those measurements below our bounds
 			if(newMeasurementStepList[0].time < minTime):
 				del newMeasurementStepList[0]
+
+			## found all the timestamples we needed
 			elif(newMeasurementStepList[0].time >= maxTime):
 				foundAll = True;
 				return [newMeasurementStepList,curMeasurements]
+
+			## if within bounds, pop the measurement step into our output list
 			else:
 				curMeasurements.append(newMeasurementStepList[0])
 				del newMeasurementStepList[0]
 		else:
 			return[newMeasurementStepList, []]
 
-#creates a hashtable for converting barcodes (provided in measurement data, to subject/landmark values
+
+## parseBarcode2Subject Function
+##
+##	creates a hashtable for converting barcodes (provided in measurement data, 
+##	to subject/landmark values
+##
+##Input: 
+##		barcode id
+##			
+##Output:
+##		a hashtable to convert barcodes to subject ids
 def parseBarcode2Subject(barcodes):
 	myDict = {}
 	for entry in barcodes:
 		myDict[float(entry[1])] = float(entry[0])
 	return myDict
 
-#pareses the raw measurement lists into the MeasurementStep class for use.
+
+## parseMeasurements Function
+##
+##	pareses the raw measurement lists into the MeasurementStep class for use.
+##
+##Input: 
+##		a list of measurements
+##		a list of barcodes
+##			
+##Output:
+##		a list of MeasurementStep objects in chronological order
+
 def parseMeasurements(measurementList, barcodes):
+	
+	## create a hashtable for converting barcode ids to subjects (for the landmarks)
 	subjects = parseBarcode2Subject(barcodes)
 	totalMeasurements = []
 	
+	## keep track of current time and timestep object
 	time = float(measurementList[0][0])
 	currentTimeMeasurements = MeasurementStep(time)
+	
 	for i in range(len(measurementList)):
+
+		## if in the right time, add measurement to the MeasurementStep object
 		if(float(measurementList[i][0]) == time):
 			currentTimeMeasurements.addLandmarkMeasurement(float(measurementList[i][0]), subjects[float(measurementList[i][1])], float(measurementList[i][1]), float(measurementList[i][2]), float(measurementList[i][3]))
+		
+		## if we're not in the right time, log the current MeasurementStep object,
+		## create a new one and update the time
 		else:
 			totalMeasurements.append(currentTimeMeasurements)
 			time = float(measurementList[i][0])
 			currentTimeMeasurements = MeasurementStep(time)
 			currentTimeMeasurements.addLandmarkMeasurement(float(measurementList[i][0]), subjects[float(measurementList[i][1])], float(measurementList[i][1]), float(measurementList[i][2]), float(measurementList[i][3]))
 
+	## return the lists of all the MeasurementStep objects
 	return totalMeasurements
 
-#helper function for returning a random sample from a gaussian distrobution along with its probabilty value (aka weight)
+
+
+## randomGaussianPointAndProb Function
+##
+##	helper function for returning a random sample from a gaussian distrobution 
+##	along with its probabilty value (aka weight)
+##
+##Input: 
+##		a mean value
+##		a standard deviation value
+##			
+##Output:
+##		a list [ a random value generated on the defined normal distrobution, 
+##			the prob density of the value occuring]
 def randomGaussianPointAndProb(mean, std):
 	point = np.random.normal(mean, std)
 	prob = 1/(std * np.sqrt(2 * np.pi)) * np.exp( - (point - mean)**2 / (2 * std**2))
 	return [point, prob]
 
+## uniformProb Function
+##
+##	helper function for returning a random value between -10 and 10 and a 
+##	prob uniform for a given size set
+##
+##Input: 
+##		a pos value (not needed but allows function to act in randomGaussianPointAndProb format )
+##		a size value for creating a uniform disto prob
+##			
+##Output:
+##		a list [ a random value  from -10 to 10, 
+##			a uniform prob for a size]
 def uniformProb(pos, size):
 	point = 20*np.random.rand() - 10.0
 	return[point, 1.0/size]
-
-# def singleProb(pos, size):
-# 	return[pos, 1.0/size]
