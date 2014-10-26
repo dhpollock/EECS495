@@ -35,7 +35,7 @@ class GridSpace:
 		for i in range(self.xMaxIndex):
 			row = []
 			for j in range(self.yMaxIndex):
-				row.append(GridNode(i, j, self.xMin + i*self.cellSize, self.yMin + j*self.cellSize))
+				row.append(GridNode(i, j, self.xMin + i*self.cellSize + self.cellSize/2.0, self.yMin + j*self.cellSize + self.cellSize/2.0))
 			self.spaceArray.append(row)
 
 	def initObstaclesSimple(self, listOfObstacles, expandDist = 0):
@@ -109,11 +109,11 @@ class GridSpace:
 		for row in self.spaceArray:
 			for cell in row:
 				if(cell.obstacle):
-					patches.append(plt.Rectangle((cell.x, cell.y),self.cellSize,self.cellSize, alpha = .5, color = 'red'))
+					patches.append(plt.Rectangle((cell.x - self.cellSize/2.0, cell.y - self.cellSize/2.0),self.cellSize,self.cellSize, alpha = .5, color = 'red'))
 				elif(cell.visited):
-					patches.append(plt.Rectangle((cell.x, cell.y),self.cellSize,self.cellSize, alpha = .5, color = 'green'))
+					patches.append(plt.Rectangle((cell.x- self.cellSize/2.0, cell.y- self.cellSize/2.0),self.cellSize,self.cellSize, alpha = .5, color = 'green'))
 				elif(cell.occupied):
-					patches.append(plt.Rectangle((cell.x, cell.y),self.cellSize,self.cellSize, alpha = .5, color = 'blue'))
+					patches.append(plt.Rectangle((cell.x- self.cellSize/2.0, cell.y- self.cellSize/2.0),self.cellSize,self.cellSize, alpha = .5, color = 'blue'))
 		return patches
 
 	def getXTicks(self):
