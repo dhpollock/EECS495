@@ -96,6 +96,8 @@ def q3():
 		ax.set_xlabel('X Position (meters)')
 		ax.set_ylabel('Y Position (meters)')
 		ax.set_title("Path for Set " + mySetNames[n])
+		ax.annotate("start", xy = (sets[0][0],sets[0][1]), xytext = (sets[0][0]+1.0, sets[0][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.annotate("goal", xy = (sets[1][0],sets[1][1]), xytext = (sets[1][0]+1.0, sets[1][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
 
 		gridPatches = solutionGrid.paintGrid()
 
@@ -183,6 +185,8 @@ def q5():
 
 		for patch in gridPatches:
 			ax.add_patch(patch)
+		ax.annotate("start", xy = (sets[0][0],sets[0][1]), xytext = (sets[0][0]+1.0, sets[0][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.annotate("goal", xy = (sets[1][0],sets[1][1]), xytext = (sets[1][0]+1.0, sets[1][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
 
 		# ax.set_xticks(myGrid.getXTicks())
 		# ax.set_yticks(myGrid.getYTicks())
@@ -213,12 +217,14 @@ def q7():
 		soln = myAstar.gridGoalSpace(sets[0], sets[1])
 		solutionGrid = soln[0]
 		path = soln[1]
-		print("paths =" + str(path))
+		# print("paths =" + str(path))
+
 		#generate commands and drive them
 
 		pathX = []
 		pathY = []
 		state = [sets[0][0],sets[0][1],-np.pi/2]
+		quivers = np.array([[state[0], state[1], np.cos(state[2]), np.sin(state[2])]])
 		for node in path:
 
 			commands = outputDriveControls(state, node, 0.1)
@@ -227,7 +233,9 @@ def q7():
 				state = simulatedControllerEstimate(state, command[0], command[1], 0.1)
 				pathX.append(state[0])
 				pathY.append(state[1])
+				quivers = np.concatenate((quivers, np.array([[state[0], state[1], np.cos(state[2]), np.sin(state[2])]])), axis = 0)
 
+		qX,qY,qU,qV = zip(*quivers)
 
 
 
@@ -240,7 +248,9 @@ def q7():
 		ax.set_xlabel('X Position (meters)')
 		ax.set_ylabel('Y Position (meters)')
 		ax.set_title("Robot Path through Set " + mySetNames[n])
-
+		ax.annotate("start", xy = (sets[0][0],sets[0][1]), xytext = (sets[0][0]+1.0, sets[0][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.annotate("goal", xy = (sets[1][0],sets[1][1]), xytext = (sets[1][0]+1.0, sets[1][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.quiver(qX,qY,qU,qV,angles='xy', scale_units='xy',scale=1)
 		gridPatches = solutionGrid.paintGrid()
 
 
@@ -267,11 +277,15 @@ def q8():
 	n = 0
 	for sets in mySets:
 
-		soln = myAstar.driveGridGoalSpace(sets[0], sets[1], [sets[0][0], sets[0][1], -np.pi/2.0])
+		soln = myAstar.driveGridGoalSpace(sets[0], sets[1], [sets[0][0], sets[0][1], -np.pi/2.0],3)
 		solutionGrid = soln[0]
 		pathX = soln[1]
 		pathY = soln[2]
+		quivers = soln[3]
 		#generate commands and drive them
+		
+		qX,qY,qU,qV = zip(*quivers)
+
 
 		fig = plt.figure()
 
@@ -282,6 +296,9 @@ def q8():
 		ax.set_xlabel('X Position (meters)')
 		ax.set_ylabel('Y Position (meters)')
 		ax.set_title("Robot Path through Set " + mySetNames[n])
+		ax.annotate("start", xy = (sets[0][0],sets[0][1]), xytext = (sets[0][0]+1.0, sets[0][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.annotate("goal", xy = (sets[1][0],sets[1][1]), xytext = (sets[1][0]+1.0, sets[1][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.quiver(qX,qY,qU,qV,angles='xy', scale_units='xy',scale=1)
 
 
 		gridPatches = solutionGrid.paintGrid()
@@ -320,6 +337,8 @@ def q9():
 		solutionGrid = soln[0]
 		pathX = soln[1]
 		pathY = soln[2]
+		quivers = soln[3]		
+		qX,qY,qU,qV = zip(*quivers)
 		#generate commands and drive them
 		fig = plt.figure()
 
@@ -330,6 +349,9 @@ def q9():
 		ax.set_xlabel('X Position (meters)')
 		ax.set_ylabel('Y Position (meters)')
 		ax.set_title("Robot Path through Set " + mySetNames[n])
+		ax.annotate("start", xy = (sets[0][0],sets[0][1]), xytext = (sets[0][0]+1.0, sets[0][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.annotate("goal", xy = (sets[1][0],sets[1][1]), xytext = (sets[1][0]+1.0, sets[1][1]), arrowprops = dict(facecolor = 'gray',shrink = 0.05, alpha = 0.5))
+		ax.quiver(qX,qY,qU,qV,angles='xy', scale_units='xy',scale=1)
 
 
 		gridPatches = solutionGrid.paintGrid()

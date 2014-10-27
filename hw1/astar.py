@@ -71,7 +71,7 @@ class AStar:
 
 		return [tempGoalSpace, path]
 
-	def driveGridGoalSpace(self, startVector, endVector, robotInitVector):
+	def driveGridGoalSpace(self, startVector, endVector, robotInitVector, steps=-1):
 
 		tempGoalSpace = deepcopy(self.environment)
 
@@ -87,12 +87,13 @@ class AStar:
 		pathX = []
 		pathY = []
 		state = robotInitVector
-
+		quivers = np.array([[state[0], state[1], np.cos(state[2]), np.sin(state[2])]])
+		n = 0
 		while(expandedNode != goalNode):
 			
-			# if(expandedNode == goalNode):
-			# 	print("found goal")
-			# 	break;
+			if(steps != -1):
+				if(n > steps):
+					break
 
 			nodesToOpen = []
 			costs = []
@@ -130,15 +131,15 @@ class AStar:
 
 
 				commands = outputDriveControls(state, [nodesToOpen[minCostNodeIndex].x, nodesToOpen[minCostNodeIndex].y], 0.1)
-				print commands
 				for command in commands:
 					state = simulatedControllerEstimate(state, command[0], command[1], 0.1)
 					pathX.append(state[0])
 					pathY.append(state[1])
-
+					quivers = np.concatenate((quivers, np.array([[state[0], state[1], np.cos(state[2]), np.sin(state[2])]])), axis = 0)
 			else:
-				print("Failure, unable to reach goal");
-				break;
+				print("Failure, unable to reach goal")
+				break
+			n=n+1
 
 
-		return [tempGoalSpace, pathX, pathY]
+		return [tempGoalSpace, pathX, pathY, quivers]
