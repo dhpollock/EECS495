@@ -27,6 +27,7 @@ import numpy as np
 import time
 from astar import *
 
+##Some shared graphing legend variables
 blue_line = mlines.Line2D([],[], color = 'blue')
 obstacle_line = mlines.Line2D([],[], color = 'red', marker = 'o', markersize = 5)
 obstacle_cell = mpatches.Patch(color = 'red', alpha = .5, label = "Obstacle Cell")
@@ -44,10 +45,10 @@ def q1():
 	myGrid.initObstaclesSimple([obstacle1,obstacle2,obstacle3])
 	# myGrid.initObstaclesComplex([obstacle1,obstacle2,obstacle3])
  
+
+ 	##===Plotting Details===##
 	fig = plt.figure()
-
 	ax = fig.add_subplot(111)
-
 	ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro')
 	ax.legend([obstacle_line, obstacle_cell], ['True Obstacle', 'Obstacle Cell'])
 	ax.set_xlabel('X Position (meters)')
@@ -55,7 +56,6 @@ def q1():
 	ax.set_title("Grid Space with Cell Size 1.0m")
 
 	gridPatches = myGrid.paintGrid()
-
 
 	for patch in gridPatches:
 		ax.add_patch(patch)
@@ -70,13 +70,14 @@ def q1():
 
 def q3():
 
+	##define gridspace and cell size
 	myGrid = grid.GridSpace([-2 , 5], [-6, 6], 1)
 	myGrid.initObstaclesSimple([obstacle1,obstacle2,obstacle3])
-	# myGrid.initObstaclesComplex([obstacle1,obstacle2,obstacle3])
 
-
+	##Create my A* instance
 	myAstar = AStar(myGrid)
 
+	##Define the set of start and goal positions, give each set a name
 	setA = [[0.5, -1.5], [0.5, 1.5]]
 	setB = [[4.5, 3.5], [4.5, -1.5]]
 	setC = [[-0.5, 5.5], [1.5,-3.5]]
@@ -84,14 +85,18 @@ def q3():
 	mySets = [setA, setB, setC]
 	mySetNames = ["A", "B", "C"]
 
+	##n is a counter for each set name
 	n = 0
+
+	##Graph results for each set
 	for sets in mySets:
 
+		##Create a solutionGrid for the given start and goal
 		solutionGrid = myAstar.gridGoalSpace(sets[0], sets[1])[0]
 
 	 
+	 	##===Plotting Details===##
 		fig = plt.figure()
-
 		ax = fig.add_subplot(111)
 
 		ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro')
@@ -118,16 +123,13 @@ def q3():
 
 def q4():
 
-	##define gridspace and cell size
+	##define gridspace and cell size, notice smaller resolution this time
 	myGrid = grid.GridSpace([-2 , 5], [-6, 6], .1)
-
-	## Simple Obstacles for no walls, complex with walls
 	myGrid.initObstaclesSimple([obstacle1,obstacle2,obstacle3], expandDist = 0.3)
-	# myGrid.initObstaclesComplex([obstacle1,obstacle2,obstacle3])
 
- 
+
+ 	##===Plotting Details===##
 	fig = plt.figure()
-
 	ax = fig.add_subplot(111)
 
 	ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro')
@@ -153,13 +155,14 @@ def q4():
 
 def q5():
 
+	##define gridspace and cell size, notice smaller resolution this time
 	myGrid = grid.GridSpace([-2 , 5], [-6, 6], 0.1)
 	myGrid.initObstaclesSimple([obstacle1,obstacle2,obstacle3], expandDist = 0.3)
-	# myGrid.initObstaclesComplex([obstacle1,obstacle2,obstacle3], expandDist = 0.3)
 
-
+	##Create my A* instance
 	myAstar = AStar(myGrid)
 
+	##Define the set of start and goal positions, give each set a name
 	setA = [[2.45, -3.55], [0.95, -1.55]]
 	setB = [[4.95, -0.05], [2.45, 0.25]]
 	setC = [[-0.55, 1.45], [1.95, 3.95]]
@@ -167,14 +170,17 @@ def q5():
 	mySets = [setA, setB, setC]
 	mySetNames = ["A", "B", "C"]
 
+	##n is a counter for each set name
 	n = 0
+
+	##Graph results for each set
 	for sets in mySets:
 
+		##Create a solutionGrid for the given start and goal
 		solutionGrid = myAstar.gridGoalSpace(sets[0], sets[1])[0]
 
-	 
+	 	##===Plotting Details===##
 		fig = plt.figure()
-
 		ax = fig.add_subplot(111)
 
 		ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro')
