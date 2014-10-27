@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ##Author: D. Harmon Pollock
 ##Date: Oct '14
 ##Class: EECS 495 ML & AI for Robotics
