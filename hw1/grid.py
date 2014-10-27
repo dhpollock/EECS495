@@ -13,7 +13,21 @@ from helperFunctions import *
 import numpy as np
 from astar import *
 
+##===GridSpace Class===##
+## Class used for creating the environment in which the robot operates
+## Each grid cell contains a node instance which holds the data for each cell
+
 class GridSpace:
+
+	##Grid Space Class __init__ function
+	##
+	##Input:
+	##	xRange -- a vector of [num, num] containin the min and max x state bounds
+	##  yRange -- a vector of [num, num] containin the min and max y state bounds
+	##	resolution -- determines the resolution of grid decompisition
+	##Output:
+	##	N/A
+	##
 
 	def __init__(self, xRange, yRange, resolution):
 		self.xMin = xRange[0]
@@ -32,6 +46,15 @@ class GridSpace:
 		self.spaceArray = []
 		self.initSpace()
 
+	##Grid Space Class initSpace function
+	##
+	## This creates new grid nodes for the grid space defined in the __init__
+	##
+	##Input:
+	##	N/A
+	##Output:
+	##	N/A
+	##
 	def initSpace(self):
 		#Create the rows
 		for i in range(self.xMaxIndex):
@@ -40,6 +63,18 @@ class GridSpace:
 				row.append(GridNode(i, j, self.xMin + i*self.cellSize + self.cellSize/2.0, self.yMin + j*self.cellSize + self.cellSize/2.0))
 			self.spaceArray.append(row)
 
+
+	##Grid Space Class initObstaclesSimple function
+	##
+	## This modifies the grid nodes to reflect obstacles in the space
+	## Simple implies that it does NOT account for connectedness amongst the obstacle nodes (ie Walls)
+	##
+	##Input:
+	##	listOfObstacles -- takes in a list of obstacle objects (defined in helper functions)
+	##	expandDist -- optional paramenter, if > 0 then it expands the obstacle into nearby nodes
+	##Output:
+	##	N/A
+	##
 	def initObstaclesSimple(self, listOfObstacles, expandDist = 0):
 		for obstacle in listOfObstacles:
 			for i in range(len(obstacle.obstacleLandmarks)):
@@ -59,6 +94,17 @@ class GridSpace:
 								tempCell.cost = 1000
 							delta = delta + res
 
+	##Grid Space Class initObstaclesComplex function
+	##
+	## This modifies the grid nodes to reflect obstacles in the space
+	## Complex implies that it DOES account for connectedness amongst the obstacle nodes (ie Walls)
+	##
+	##Input:
+	##	listOfObstacles -- takes in a list of obstacle objects (defined in helper functions)
+	##	expandDist -- optional paramenter, if > 0 then it expands the obstacle into nearby nodes
+	##Output:
+	##	N/A
+	##
 	def initObstaclesComplex(self, listOfObstacles, expandDist = 0):
 		for obstacle in listOfObstacles:
 			for i in range(len(obstacle.obstacleLandmarks)-1):
@@ -89,11 +135,17 @@ class GridSpace:
 									tempCell.cost = 1000
 								expandDelta = expandDelta + res
 
-	# def expandObstacles(self, expandDist, simpleBool):
-		# if(simpleBool):
 
-
-
+	##Grid Space Class getCell function
+	##
+	## Gets a node object of a cell given a position
+	##
+	##Input:
+	##	x -- num representing an x coordinate
+	##	y -- num representing a y coordinate
+	##Output:
+	##	a node object for the supplied coordinates
+	##
 	def getCell(self, x, y):
 		if(x >= self.xMax or y >= self.yMax or x < self.xMin or y < self.yMin):
 			print("Error: getCell call out of bounds")
@@ -105,7 +157,15 @@ class GridSpace:
 		return self.spaceArray[xindex][yindex]
 
 
-
+	##Grid Space Class paintGrid function
+	##
+	## Returns a list of matlibplot patches that can be used for plotting
+	##
+	##Input:
+	##	N/A
+	##Output:
+	##	a list of matlibplot patch objects
+	##
 	def paintGrid(self):
 		patches = []
 		for row in self.spaceArray:
@@ -118,6 +178,16 @@ class GridSpace:
 					patches.append(plt.Rectangle((cell.x- self.cellSize/2.0, cell.y- self.cellSize/2.0),self.cellSize,self.cellSize, alpha = .5, color = 'blue'))
 		return patches
 
+	##Grid Space Class getXTicks function
+	##
+	## Returns a list of x-coordinates for the start of each cell
+	## Can be used for displaying the grid space on a plot
+	##
+	##Input:
+	##	N/A
+	##Output:
+	##	a list of nums
+	##
 	def getXTicks(self):
 		xticks = [self.xMin]
 
@@ -126,7 +196,16 @@ class GridSpace:
 
 		return xticks
 
-
+	##Grid Space Class getYTicks function
+	##
+	## Returns a list of y-coordinates for the start of each cell
+	## Can be used for displaying the grid space on a plot
+	##
+	##Input:
+	##	N/A
+	##Output:
+	##	a list of nums
+	##
 	def getYTicks(self):
 		yticks = [self.yMin]
 
@@ -136,9 +215,21 @@ class GridSpace:
 		return yticks
 
 
+##===GridNode Class===##
+## Class used for creating GridNodes used in each cell of the GridSpace
 
 class GridNode:
-
+	##Grid Node Class __init__ function
+	##
+	## A data storage class
+	##
+	##Input:
+	##	row -- num representing the row in the gridspace array
+	##	column -- num representing the column in the gridspace array
+	##	x -- num, the x-coordinate of the cells center
+	##	y -- num, the y-coordinate of the cells center 
+	##Output:
+	##	N/A
 	def __init__(self, row, column, x, y):
 		self.cost = 1
 		self.row = row

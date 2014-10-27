@@ -9,7 +9,6 @@
 
 ##Model Functions for HW0
 
-from scipy import integrate
 import numpy as np
 from helperFunctions import *
 import math
@@ -29,24 +28,8 @@ import math
 
 def simulatedControllerEstimate(posVector, tranSpeedCommandInput, rotSpeedCommandInput, timeDuration):
 
-	## experimented with adding noise to the command inputs, not useful, keep the same
-	tranSpeedCommand = tranSpeedCommandInput# + .025 * (.5-np.random.randn())
-	rotSpeedCommand = rotSpeedCommandInput# + 0.075*(.5 - np.random.randn())
-
-	##====State Quations====##
-	## I had two sets of equations to define the motion model, in the end the functionally the same,
-	## but using the other formulas as they are computationally more efficient
-
-	## == Equations I came up with independently == ##
-
-	# x2 = lambda t: np.cos(posVector[2] + rotSpeedCommand*t)
-	# x = posVector[0] + tranSpeedCommand * integrate.quad(x2, 0.0, timeDuration)[0]
-
-	# y2 = lambda t: np.sin(posVector[2] + rotSpeedCommand * t)
-	# y = posVector[1] + tranSpeedCommand*integrate.quad(y2, 0.0, timeDuration)[0]
-
-	# rot2 = lambda t: rotSpeedCommand
-	# rot = posVector[2] + integrate.quad(rot2, 0.0, timeDuration)[0]
+	tranSpeedCommand = tranSpeedCommandInput
+	rotSpeedCommand = rotSpeedCommandInput
 
 	## ==Equations sourced for Probalistic Robotics formaula 5.9, pg 101 == ##
 
@@ -73,62 +56,74 @@ def simulatedControllerEstimate(posVector, tranSpeedCommandInput, rotSpeedComman
 ##Output:
 ##	list of control steps([ forward speed v, rotational speed r], [v, r], ...)
 ##
-## Model:
-## x = x' + Integral(transSpeedCommand*cos(rot + rotSpeedCommand * t) * t, 0, timeDuration, dt)
-## y = y' + Integral(transSpeedCommand*sin(rot + rotSpeedCommand * t) * t, 0, timeDuration, dt)
 
 def outputDriveControls(currectState, goalState, timeIncrement):
+	
+	## Define some model constants
 	maxAccel = 0.288 #m/s2
 	maxRotAccel = 5.579 #rad/s2
 	vMax = .5
+
+	##initalize command steps
 	steps = []
 
-	#get to bearing to goal
+	##get to bearing to goal
 	neededHeading = np.arctan2(goalState[1]-currectState[1], goalState[0]-currectState[0])
 
 	adjustedheading = 0
 
+	##Bound state heading between -pi and pi
 	if(currectState[2] > np.pi):
 		adjustedheading = currectState[2] - 2*np.pi
 	elif (currectState[2] < -np.pi):
 		adjustedheading = currectState[2] + 2*np.pi
 	else:
 		adjustedheading = currectState[2]
-	deltaHeading = neededHeading - adjustedheading
+	# deltaHeading = neededHeading - adjustedheading
 
 	curHeading = adjustedheading
 	w = 0
+
+	##Iterate until we are close to heading needed
 	while(abs(neededHeading - curHeading) > 0.005):
 
+		##Bound for max acceleration
 		if(abs(((neededHeading - curHeading) - w)/timeIncrement) > maxRotAccel):
 			w = w + maxRotAccel*timeIncrement*math.copysign(1,neededHeading - curHeading)
 		else:
 			w = (neededHeading - curHeading)
-		
 
+		##Update new heading given our state
 		curHeading = curHeading + w*timeIncrement
 
-		# print("rot = " + str(w))
-
+		##Record command
 		steps.append([0, w])
 
 
+	##Now cacluate Velocity once pointing in the right direction
+
+	##initalize the distance and velocity
 	dist = distance(goalState, [currectState[0], currectState[1]])
 	curdist = 0
 	v = 0 
+
+	##Iterate until we are close to distance needed
 	while(abs(dist - curdist) > 0.01):
 
+		##Bound for max acceleration
 		if(abs(((dist-curdist) - v)/timeIncrement) > maxAccel):
+			##Bound for max velocity
 			if(v > vMax):
 				v = v
 			else:
 				v = v + maxAccel*timeIncrement*math.copysign(1,dist-curdist)
 		else:
 			v = dist - curdist
-
+		##Update new distance given our state
 		curdist = curdist + v*timeIncrement
+
+		##Record command
 		steps.append([v,0])
-		# print("vel = " + str(v))
 
 	return steps
 
