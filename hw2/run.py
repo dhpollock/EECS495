@@ -21,14 +21,76 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import numpy as np
 import time
+import neurolab as nl
 
 ## The Question 9 function is where most of the heavy lifting is done in terms of creating
 ## a number of different scenarios by easily commenting out differnt section of this code
 ## more comments to follow...
 def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
-	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes)
-	print dataset[0]
+	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
+
+	target = makeTargetArray(dataset)
+
+	train = getTrainingData(dataset)
+
+	minMaxDataset = getListMinMax(train)
+	print minMaxDataset
+
+	target = normalize(target, minMaxDataset)
+	train = normalize(train, minMaxDataset)
+	print np.array(target)
+	print np.array(train)
+	net = nl.net.newff(minMaxDataset, [10,1])
+
+	error = net.train(np.array(train), np.array(target),epochs=500, show = 10, goal=.05)
+	print error
+	out = net.sim(np.array(train))
+	print out
+
+	plt.plot(error)
+	plt.show()
+
+	# Create train samples
+	# x = np.linspace(-7, 7, 20)
+	# y = np.sin(x) * 0.5
+
+	# # print x
+
+	# size = len(x)
+
+	# inp = x.reshape(size,1)
+	# tar = y.reshape(size,1)
+
+	# print inp
+	# print tar
+
+	# # Create network with 2 layers and random initialized
+	# net = nl.net.newff([[-7, 7]],[5, 1])
+
+	# # Train network
+	# error = net.train(inp, tar, epochs=500, show=100, goal=0.02)
+
+	# # Simulate network
+	# out = net.sim(inp)
+
+	# # Plot result
+	# plt.subplot(211)
+	# plt.plot(error)
+	# plt.xlabel('Epoch number')
+	# plt.ylabel('error (default SSE)')
+
+	# x2 = np.linspace(-6.0,6.0,150)
+	# y2 = net.sim(x2.reshape(x2.size,1)).reshape(x2.size)
+
+	# y3 = out.reshape(size)
+
+	# plt.subplot(212)
+	# plt.plot(x2, y2, '-',x , y, '.', x, y3, 'p')
+	# plt.legend(['train target', 'net output'])
+	# plt.show()
+
+
 	# ##parse the measurements in to measurement step objects
 	# myMeasurements = parseMeasurements(measurement, barcodes)
 

@@ -10,6 +10,7 @@
 import math
 import numpy as np
 from scipy import integrate
+import random
 
 
 ## loadFileToLists Function
@@ -323,18 +324,20 @@ def uniformProb(pos, size):
 ##Output:
 ##		a list [ a random value  from -10 to 10, 
 ##			a uniform prob for a size]
-def createSensorNoiseDataset(measurementList, groundTruthList, barcodes):
+def createSensorNoiseDataset(measurementList, groundTruthList, barcodes, randomize = False):
 	dataset = []
+	gt = groundTruthList
 	landmarkIDs = parseBarcode2Subject(barcodes)
 	for mEntry in measurementList:
 		if(landmarkIDs[int(mEntry[1])] > 6):
 			dEntry = []
+			# dEntry.append(random.random())
 			dEntry.append(float(mEntry[0]))
 			dEntry.append(landmarkIDs[int(mEntry[1])])
 			dEntry.append(float(mEntry[2]))
 			dEntry.append(float(mEntry[3]))
 
-			myGroundTruth = getNearestGT(float(mEntry[0]), groundTruthList)
+			[myGroundTruth, gt] = getNearestGT(float(mEntry[0]), gt)
 			dEntry.append(myGroundTruth[1])
 			dEntry.append(myGroundTruth[2])
 			dEntry.append(myGroundTruth[3])
@@ -346,7 +349,11 @@ def createSensorNoiseDataset(measurementList, groundTruthList, barcodes):
 			dEntry.append(mylandmark.y)
 
 			dataset.append(dEntry)
-	return dataset
+	if(randomize):
+		random.shuffle(dataset)
+		return dataset
+	else:
+		return dataset
 
 
 def getNearestGT(time, groundTruth):
@@ -357,4 +364,65 @@ def getNearestGT(time, groundTruth):
 			minDelta = (time - float(groundTruth[i][0]))
 			index = i
 		elif((time - float(groundTruth[i][0])) < 0):
-			return [float(groundTruth[i][0]), float(groundTruth[i][1]), float(groundTruth[i][2]), float(groundTruth[i][3])]
+			return [[float(groundTruth[i][0]), float(groundTruth[i][1]), float(groundTruth[i][2]), float(groundTruth[i][3])], groundTruth[i:]]
+
+## createSensorNoiseDataset Function
+##
+##	input dataset of entires with the following format, ignores landmarks ids < 6
+##		0 Timestamp(of measurement)
+##		1 LandmarkID(of measurement)
+##		2 Range(of measurement)
+##		3 Heading(of measurement)
+##		4  GroundTruth X (nearest to timestamp)
+##		5 GroundTruth Y (nearest to timestamp)
+##		6 GroundTruth Orientation (nearest to timestamp)
+##		7 Landmark True X
+##		8 Landmark True Y
+##		Landmark True X Std Dev (optional)
+##		Landmark True Y Std Dev (optioanl)
+##
+##Input: 
+##		dataset of above format
+##			
+##Output:
+##		a list of target range/heading values
+
+def makeTargetArray(dataset):
+	target = []
+	for entry in dataset:
+		targetRange = entry[2]*5
+		# targetRange = distance([entry[4], entry[5]], [entry[7], entry[8]])
+		targetBearing = np.arctan2([entry[5], entry[8]], [entry[4], entry[7]])[0]-entry[6]
+		target.append([targetRange])#, targetBearing])
+	return target
+
+def getListMinMax(dataset):
+	minMax = []
+	for item in dataset[0]:
+		minMax.append([item, item])
+	for entry in dataset:
+		for i in range(len(entry)):
+			if(minMax[i][0] > entry[i]):
+				minMax[i][0] = entry[i]
+			elif(minMax[i][1] < entry[i]):
+				minMax[i][1] = entry[i]
+	return minMax
+
+def getTrainingData(dataset):
+	training = []
+	for entry in dataset:
+		training.append([entry[2]])
+
+	return training
+
+def normalize(dataset, maxList):
+	maxs = []
+	normalizedList = []
+	for i in range(len(maxList)):
+		maxs.append(maxList[i][1])
+	for entry in dataset:
+		normalizedEntry = []
+		for i in range(len(entry)):
+			normalizedEntry.append(entry[i]/maxs[i])
+		normalizedList.append(normalizedEntry)
+	return normalizedList
