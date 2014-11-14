@@ -390,11 +390,41 @@ def getNearestGT(time, groundTruth):
 def makeTargetArray(dataset):
 	target = []
 	for entry in dataset:
-		targetRange = entry[2]*5
-		# targetRange = distance([entry[4], entry[5]], [entry[7], entry[8]])
+		# targetRange = entry[2]*5
+		targetRange = distance([entry[4], entry[5]], [entry[7], entry[8]])
 		targetBearing = np.arctan2([entry[5], entry[8]], [entry[4], entry[7]])[0]-entry[6]
-		target.append([targetRange])#, targetBearing])
+		if(targetBearing > np.pi):
+			targetBearing = targetBearing - 2*np.pi
+		elif(targetBearing < -np.pi):
+			targetBearing = targetBearing + 2*np.pi
+		target.append([targetRange, targetBearing])
 	return target
+
+def rescale(dataset, minMaxList):
+	newDataset= []
+	for entry in dataset:
+		newRow = []
+		for i in range(len(entry)):
+			scale = 0
+			if(abs(minMaxList[i][0]) > minMaxList[i][1]):
+				scale = abs(minMaxList[i][0])
+			else:
+				scale = minMaxList[i][1]
+			newRow.append(entry[i]*scale)
+		newDataset.append(newRow)
+	return newDataset
+
+def getXYRangeLocations(dataset, solution, landmark):
+	xs = []
+	ys = []
+	for i in range(len(dataset)):
+		if(dataset[i][1] == landmark):
+			x = dataset[i][4] + solution[i][0]*np.cos(dataset[i][6] - solution[i][1])
+			y = dataset[i][5] + solution[i][0]*np.sin(dataset[i][6] - solution[i][1])
+			xs.append(x)
+			ys.append(y)
+
+	return [xs, ys]
 
 def getListMinMax(dataset):
 	minMax = []
@@ -411,7 +441,7 @@ def getListMinMax(dataset):
 def getTrainingData(dataset):
 	training = []
 	for entry in dataset:
-		training.append([entry[2]])
+		training.append([entry[2], entry[3]])
 
 	return training
 
@@ -419,10 +449,22 @@ def normalize(dataset, maxList):
 	maxs = []
 	normalizedList = []
 	for i in range(len(maxList)):
-		maxs.append(maxList[i][1])
+		if(abs(maxList[i][0])> maxList[i][1]):
+			maxs.append(abs(maxList[i][0]))
+		else:
+			maxs.append(maxList[i][1])
 	for entry in dataset:
 		normalizedEntry = []
 		for i in range(len(entry)):
 			normalizedEntry.append(entry[i]/maxs[i])
 		normalizedList.append(normalizedEntry)
 	return normalizedList
+
+def sse(dataset1, dataset2):
+	sumSSE = 0
+	for i in range(len(dataset1)):
+		sumTemp = 0
+		for j in range(len(dataset1[i])):
+			sumTemp = sumTemp + ((dataset1[i][j] - dataset2[i][j])*(dataset1[i][j] - dataset2[i][j]))
+		sumSSE = sumSSE + sumTemp
+	return sumSSE

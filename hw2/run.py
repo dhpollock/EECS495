@@ -32,29 +32,88 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	target = makeTargetArray(dataset)
 
-	train = getTrainingData(dataset)
+	myInput = getTrainingData(dataset)
 
-	minMaxDataset = getListMinMax(train)
+	minMaxDataset = getListMinMax(myInput)
 	print minMaxDataset
+	# print minMaxDataset
 
-	target = normalize(target, minMaxDataset)
-	train = normalize(train, minMaxDataset)
-	print np.array(target)
-	print np.array(train)
-	net = nl.net.newff(minMaxDataset, [10,1])
 
-	error = net.train(np.array(train), np.array(target),epochs=500, show = 10, goal=.05)
-	print error
-	out = net.sim(np.array(train))
-	print out
+	# ax.set_xlabel('X Position (meters)')
+	# ax.set_ylabel('Y Position (meters)')
 
-	plt.plot(error)
-	plt.show()
+	# plt.show()
+
+
+	targetMinMax = getListMinMax(target)
+	print targetMinMax
+	targetNorm = normalize(target, targetMinMax)
+	myInputNorm = normalize(myInput, minMaxDataset)
+
+	# myInput = np.linspace(0,1,20)
+	# target = myInput * 4.0
+
+	# targetNormalize = target/4.0
+
+
+	# myInput2 = myInput.reshape(len(myInput), 1)
+	# target2 = targetNormalize.reshape(len(targetNormalize),1)
+
+
+	# print myInput2
+	# print target2
+
+	
+
+	error1 = 0
+	error2 = 0
+	##10fold cross validation
+	inc = int(len(myInputNorm)/10)
+	for i in range(10):
+		testRange = myInputNorm[i*inc:(i+1)*inc]
+		inputRange = myInputNorm[0:i*inc] + myInputNorm[(i+1)*inc:]
+
+		testTargetRange = targetNorm[i*inc:(i+1)*inc]
+		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
+
+		net = nl.net.newff(minMaxDataset, [15,2])
+		error = net.train(inputRange, inputTargetRange,epochs=500, show = 10, goal=600.0)
+
+		out = net.sim(testRange)
+	# print out
+
+		rescaleOutput = rescale(out, targetMinMax)
+
+		compError = sse([[row[0], row[1]] for row in testRange], testTargetRange)
+		print compError
+		error1 = error1 + compError
+		tempError = sse(out, testTargetRange)
+		print tempError
+		error2 = error2 + tempError
+
+	# error1 = sse([[row[0], row[1]] for row in myInput], target)
+	print error1
+	print error2
+
+	# [xs, ys] = getXYRangeLocations(dataset, [[row[0], row[1]] for row in myInput], 10)
+	# [xo, yo] = getXYRangeLocations(dataset, [[row[0], row[1]] for row in rescaleOutput], 10)
+
+	# fig = plt.figure()
+	# ax = fig.add_subplot(111)
+	# ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro', xs, ys, 'go', xo, yo, 'bo')
+
+	# ax.set_xlabel('X Position (meters)')
+	# ax.set_ylabel('Y Position (meters)')
+
+	# plt.show()
+	# plt.plot(myInput, out, 'o')
+	# # plt.plot(error)
+	# plt.show()
 
 	# Create train samples
 	# x = np.linspace(-7, 7, 20)
-	# y = np.sin(x) * 0.5
-
+	# y = np.sin(x)*1.1
+	# # y = x * 5
 	# # print x
 
 	# size = len(x)
