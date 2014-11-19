@@ -17,6 +17,7 @@ import sys
 from helperFunctions import *
 from models import *
 import simulations
+from nn import * 
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import numpy as np
@@ -49,7 +50,7 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	print targetMinMax
 	targetNorm = normalize(target, targetMinMax)
 	myInputNorm = normalize(myInput, minMaxDataset)
-
+	minMaxDatasetNorm = getListMinMax(myInputNorm)
 	# myInput = np.linspace(0,1,20)
 	# target = myInput * 4.0
 
@@ -76,7 +77,7 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		testTargetRange = targetNorm[i*inc:(i+1)*inc]
 		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
 
-		net = nl.net.newff(minMaxDataset, [15,2])
+		net = nl.net.newff(minMaxDatasetNorm, [5,2])
 		error = net.train(inputRange, inputTargetRange,epochs=500, show = 10, goal=600.0)
 
 		out = net.sim(testRange)
@@ -149,40 +150,82 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	# plt.legend(['train target', 'net output'])
 	# plt.show()
 
+def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
+	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
 
-	# ##parse the measurements in to measurement step objects
-	# myMeasurements = parseMeasurements(measurement, barcodes)
+	target = makeTargetArray(dataset)
 
-	# ##parse the commands into p.f. format
-	# myCommands = []
-	# for i in range(len(odometry)-1):
-	# 	myCommands.append([float(odometry[i][1]), float(odometry[i][2]), float(odometry[i][0]), float(odometry[i+1][0])-float(odometry[i][0])])
+	myInput = getTrainingData(dataset)
 
-	# myGroundtruth = []
-	# for i in range(len(groundTruth)):
-	# 	myGroundtruth.append([groundTruth[i][0], groundTruth[i][1], groundTruth[i][2], groundTruth[i][3]])
+	minMaxDataset = getListMinMax(myInput)
+	print minMaxDataset
+	# print minMaxDataset
 
 
-	# 	timeMin = command[2] + .75*command[3]
-	# 	timeMax = command[2] + 1.75*command[3]
-		
-	# 	[myMeasurements, curMeasurements] = getMeasurements(myMeasurements, timeMin, timeMax)
+	# ax.set_xlabel('X Position (meters)')
+	# ax.set_ylabel('Y Position (meters)')
 
-		
-	# ##plotting legend etc...
-	# blue_line = mlines.Line2D([],[], color = 'blue')
-	# green_line = mlines.Line2D([],[], color = 'green')
-	# yellow_line = mlines.Line2D([],[], color = 'yellow', linestyle = '--')
-	# obstacle_line = mlines.Line2D([],[], color = 'red', marker = 'o', markersize = 5)
-
-	# plt.plot(plotX, plotY, 'b-', plotXGT, plotYGT, 'g-', plotOdoX, plotOdoY, 'y--', obstacle1.x, obstacle1.y, 'r-o', obstacle2.x, obstacle2.y, 'r-o', obstacle3.x, obstacle3.y, 'r-o')
-
-	# plt.xlabel('X Position (meters)')
-	# plt.ylabel('Y Position (meters)')
-	# plt.legend([blue_line, green_line, yellow_line, obstacle_line], ['P.F. Path', 'Ground Truth', 'Controller Estimate', 'Obstacles'])
-	# plt.title("Mean PF Position Estimate")
 	# plt.show()
 
+
+	targetMinMax = getListMinMax(target)
+	print targetMinMax
+	targetNorm = normalize(target, targetMinMax)
+	myInputNorm = normalize(myInput, minMaxDataset)
+	minMaxDatasetNorm = getListMinMax(myInputNorm)
+
+	# myInput = np.linspace(0,1,20)
+	# target = myInput * 4.0
+
+	# targetNormalize = target/4.0
+
+
+	# myInput2 = myInput.reshape(len(myInput), 1)
+	# target2 = targetNormalize.reshape(len(targetNormalize),1)
+
+
+	# print myInput2
+	# print target2
+
+	
+
+	error1 = 0
+	error2 = 0
+	##10fold cross validation
+	crossfoldNum = 10
+	inc = int(len(myInputNorm)/crossfoldNum)
+	for i in range(crossfoldNum):
+		testRange = myInputNorm[i*inc:(i+1)*inc]
+		inputRange = myInputNorm[0:i*inc] + myInputNorm[(i+1)*inc:]
+
+		testTargetRange = targetNorm[i*inc:(i+1)*inc]
+		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
+
+		net = NeuralNetwork([2, 10, 2])
+		error = net.train(inputRange, inputTargetRange, targetSSE=600.0)
+
+		out = []
+
+		for testDataPt in testRange:
+			out.append(net.computeOutput(testDataPt))
+
+	# print out
+
+		# rescaleOutput = rescale(out, targetMinMax)
+
+		compError = sse([[row[0], row[1]] for row in testRange], testTargetRange)
+		error1 = error1 + compError
+
+		tempError = sse(out, testTargetRange)
+		error2 = error2 + tempError
+		
+		print("==CrossCompleted==")
+		print compError, tempError
+
+
+	print("====DONE====")
+	print error1
+	print error2
 
 def main():
 
@@ -220,8 +263,8 @@ def main():
 
 		if(command == '1'):
 			q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement)
-		elif(command == '3'):
-			q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement)
+		elif(command == '2'):
+			q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement)
 		elif(command == '8'):
 			q8(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement)
 		elif(command == '9'):
