@@ -68,9 +68,10 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	error1 = 0
 	error2 = 0
+	crossfoldNum = 10
 	##10fold cross validation
-	inc = int(len(myInputNorm)/10)
-	for i in range(10):
+	inc = int(len(myInputNorm)/crossfoldNum)
+	for i in range(crossfoldNum):
 		testRange = myInputNorm[i*inc:(i+1)*inc]
 		inputRange = myInputNorm[0:i*inc] + myInputNorm[(i+1)*inc:]
 
@@ -78,7 +79,7 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
 
 		net = nl.net.newff(minMaxDatasetNorm, [5,2])
-		error = net.train(inputRange, inputTargetRange,epochs=500, show = 10, goal=600.0)
+		error = net.train(inputRange, inputTargetRange,epochs=500, show = 10, goal=650.0)
 
 		out = net.sim(testRange)
 	# print out
@@ -95,6 +96,7 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	# error1 = sse([[row[0], row[1]] for row in myInput], target)
 	print error1
 	print error2
+	print (1-error2/error1)*100
 
 	# [xs, ys] = getXYRangeLocations(dataset, [[row[0], row[1]] for row in myInput], 10)
 	# [xo, yo] = getXYRangeLocations(dataset, [[row[0], row[1]] for row in rescaleOutput], 10)
@@ -192,7 +194,7 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	error1 = 0
 	error2 = 0
 	##10fold cross validation
-	crossfoldNum = 10
+	crossfoldNum = 5
 	inc = int(len(myInputNorm)/crossfoldNum)
 	for i in range(crossfoldNum):
 		testRange = myInputNorm[i*inc:(i+1)*inc]
@@ -201,7 +203,7 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		testTargetRange = targetNorm[i*inc:(i+1)*inc]
 		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
 
-		net = NeuralNetwork([2, 10, 2])
+		net = NeuralNetwork([2,10, 2])
 		error = net.train(inputRange, inputTargetRange, targetSSE=600.0)
 
 		out = []
@@ -226,6 +228,8 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	print("====DONE====")
 	print error1
 	print error2
+
+	print (1-error2/error1)*100
 
 def main():
 
