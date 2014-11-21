@@ -78,7 +78,7 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		testTargetRange = targetNorm[i*inc:(i+1)*inc]
 		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
 
-		net = nl.net.newff(minMaxDatasetNorm, [5,2])
+		net = nl.net.newff(minMaxDatasetNorm, [10,2])
 		error = net.train(inputRange, inputTargetRange,epochs=500, show = 10, goal=650.0)
 
 		out = net.sim(testRange)
@@ -194,7 +194,7 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	error1 = 0
 	error2 = 0
 	##10fold cross validation
-	crossfoldNum = 5
+	crossfoldNum = 10
 	inc = int(len(myInputNorm)/crossfoldNum)
 	for i in range(crossfoldNum):
 		testRange = myInputNorm[i*inc:(i+1)*inc]
@@ -204,7 +204,7 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
 
 		net = NeuralNetwork([2,10, 2])
-		error = net.train(inputRange, inputTargetRange, targetSSE=600.0)
+		error = net.trainBP(inputRange, inputTargetRange, targetSSE=100.0)
 
 		out = []
 
