@@ -54,11 +54,13 @@ class NeuralNetwork:
 			# print sse
 		return sse
 
-	def trainBP(self, inputData, targetData, targetSSE = 0.001, lr = 0.1, maxIter = 200):
+	def trainBP(self, inputData, targetData, targetSSE = 1000, lr = 0.1, maxIter = 500):
 		sse = 10000000
 		interCount = 0
+		tempCounter = 0
 		while(sse > targetSSE and interCount < maxIter):
 			tempSSE = 0
+			
 			for i in range(len(inputData)):
 				curOutput = self.computeOutput(inputData[i])
 
@@ -75,12 +77,19 @@ class NeuralNetwork:
 						self.layers[j][k].updateBPDelta(self.layers[j+1])
 
 				self.updateBPWeights(lr)
-			if(tempSSE > sse - .05):
-				break
-			else:
-				sse = tempSSE
-				interCount = interCount + 1
-			print sse
+			if(tempSSE > sse):
+				tempCounter = 0
+			if(sse - tempSSE < .1):
+			# 	print "running away"
+				tempCounter = tempCounter+1
+				# if(tempSSE > sse):
+				# 	tempCounter = 0
+				if(tempCounter > 5):
+					break
+			sse = tempSSE
+			interCount = interCount + 1
+			if(interCount % 10 == 0):
+				print sse
 		return sse 
 
 	def computeOutput(self, myInput):
@@ -158,3 +167,5 @@ class Preceptron:
 		# self.listofDeltaWeights[0] = self.listofDeltaWeights[0] + lr*self.delta*1
 		for i in range(1, len(self.listofDeltaWeights)):
 			self.listofWeights[i] = self.listofWeights[i] + lr*layer[i-1].delta*self.value
+			if(self.listofWeights[i] < .0000000001):
+				self.listofWeights[i] = 0

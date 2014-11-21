@@ -22,12 +22,19 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import numpy as np
 import time
-import neurolab as nl
+
 
 ## The Question 9 function is where most of the heavy lifting is done in terms of creating
 ## a number of different scenarios by easily commenting out differnt section of this code
 ## more comments to follow...
 def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
+
+	try:
+		import neurolab as nl
+	except ImportError:
+		print "Unable in import neurolab package"
+		print "Try <pip install neurolab> to install package"
+		return
 
 	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
 
@@ -203,7 +210,7 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		testTargetRange = targetNorm[i*inc:(i+1)*inc]
 		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
 
-		net = NeuralNetwork([2,10, 2])
+		net = NeuralNetwork([2,5,2])
 		error = net.trainBP(inputRange, inputTargetRange, targetSSE=100.0)
 
 		out = []
