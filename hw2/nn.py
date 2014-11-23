@@ -28,7 +28,7 @@ class NeuralNetwork:
 		self.layers.append(outputLayer)
 
 
-	def train(self, inputData, targetData, targetSSE = 0.1, lr = 0.00001, maxIter = 200):
+	def train(self, inputData, targetData, targetSSE = 0.1, lr = 0.00001, maxIter = 500):
 		sse = 10000000
 		interCount = 0
 		while(sse > targetSSE and interCount < maxIter):
@@ -63,31 +63,37 @@ class NeuralNetwork:
 			
 			for i in range(len(inputData)):
 				curOutput = self.computeOutput(inputData[i])
-
 				deltaOutput = 0
 				for j in range(len(curOutput)):
 					deltaOutput = deltaOutput + (targetData[i][j] - curOutput[j])
 					self.layers[self.outputIndex][j].delta = curOutput[j]*(1 - curOutput[j])*(targetData[i][j] - curOutput[j])
-					# print curOutput, targetData[i][j]
 				tempSSE = tempSSE + deltaOutput*deltaOutput
 
 				for j in range(self.outputIndex-1, -1, -1):
 					for k in range(len(self.layers[j])):
-						# print j
 						self.layers[j][k].updateBPDelta(self.layers[j+1])
 
 				self.updateBPWeights(lr)
+
+			if(interCount == maxIter-1):
+				print("passed maxIter")
+			if(tempSSE < targetSSE):
+				print("reached goal")
 			if(tempSSE > sse):
 				tempCounter = 0
-			if(sse - tempSSE < .1):
-			# 	print "running away"
+			if(tempSSE > sse+1000):
+				print("breaking --- run away")
+				break
+			if(sse - tempSSE < targetSSE/200.0):
 				tempCounter = tempCounter+1
 				# if(tempSSE > sse):
 				# 	tempCounter = 0
 				if(tempCounter > 5):
+					print "End Condition -- breaking"
 					break
 			sse = tempSSE
 			interCount = interCount + 1
+
 			if(interCount % 10 == 0):
 				print sse
 		return sse 
@@ -98,10 +104,18 @@ class NeuralNetwork:
 			self.layers[0][i].value = myInput[i]
 		for i in range(1, len(self.layers)):
 			for j in range(len(self.layers[i])):
-				# print self.layers[i][j].value
-				# self.layers[i][j].value = self.layers[i][j].value+1*self.layers[i][j].listofWeights[0]
+				# if(self.layers[i][j].value != 0):
+				# 	print self.layers[i][j].value
+				self.layers[i][j].value = self.layers[i][j].value+1*self.layers[i][j].listofWeights[0]
 				for weightNode in self.layers[i-1]:
 					self.layers[i][j].value = self.layers[i][j].value + weightNode.value*weightNode.listofWeights[j+1]
+					# if(self.layers[i][j].value > 100000000000):
+					# 	self.layers[i][j].value =100000000000
+					# elif(self.layers[i][j].value < -100000000000):
+					# 	self.layers[i][j].value = -100000000000
+					if(abs(self.layers[i][j].value) < .00000000001):
+						self.layers[i][j].value  = 0
+					# print weightNode.value, weightNode.listofWeights[j+1]
 
 
 		output = []
@@ -160,12 +174,17 @@ class Preceptron:
 
 	def updateBPDelta(self, layer):
 		sumError = 0
+		# sumError = self.listofWeights[0]*1
 		for i in range(1,len(layer)+1):
 			sumError = sumError + self.listofWeights[i]*layer[i-1].delta
 		self.delta = self.value*(1-self.value)*sumError
 	def updateBPWeights(self, lr, layer):
-		# self.listofDeltaWeights[0] = self.listofDeltaWeights[0] + lr*self.delta*1
+		self.listofWeights[0] = self.listofWeights[0] + lr*self.delta
 		for i in range(1, len(self.listofDeltaWeights)):
 			self.listofWeights[i] = self.listofWeights[i] + lr*layer[i-1].delta*self.value
-			if(self.listofWeights[i] < .0000000001):
+			if(abs(self.listofWeights[i]) < .0000000001):
 				self.listofWeights[i] = 0
+			# elif(abs(self.listofWeights[i]) < -100000000000):
+			# 	self.listofWeights[i] = -100000000000
+			# elif(abs(self.listofWeights[i]) >10000000000):
+			# 	self.listofWeights[i] = 100000000000

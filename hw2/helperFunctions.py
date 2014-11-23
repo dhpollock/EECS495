@@ -392,37 +392,51 @@ def makeTargetArray(dataset):
 	for entry in dataset:
 		# targetRange = entry[2]*5
 		targetRange = distance([entry[4], entry[5]], [entry[7], entry[8]])
-		targetBearing = np.arctan2([entry[5], entry[8]], [entry[4], entry[7]])[0]-entry[6]
+		tempOrin = entry[6]
+		if(tempOrin > np.pi):
+			tempOrin = tempOrin - 2*np.pi
+		elif(tempOrin < -np.pi):
+			tempOrin = tempOrin + 2*np.pi
+		targetBearing = tempOrin - np.arctan2([entry[8]-entry[5]], [entry[7]-entry[4]])[0]
+
 		if(targetBearing > np.pi):
 			targetBearing = targetBearing - 2*np.pi
 		elif(targetBearing < -np.pi):
 			targetBearing = targetBearing + 2*np.pi
+		# print(targetBearing)
 		target.append([targetRange, targetBearing])
 	return target
 
 def rescale(dataset, minMaxList):
 	newDataset= []
+	scale = []
+	for i in range(len(minMaxList)):
+		if(abs(minMaxList[i][0]) > minMaxList[i][1]):
+			scale.append(abs(minMaxList[i][0]))
+		else:
+			scale.append(minMaxList[i][1])
 	for entry in dataset:
 		newRow = []
 		for i in range(len(entry)):
-			scale = 0
-			if(abs(minMaxList[i][0]) > minMaxList[i][1]):
-				scale = abs(minMaxList[i][0])
-			else:
-				scale = minMaxList[i][1]
-			newRow.append(entry[i]*scale)
+			newRow.append(entry[i]*scale[i])
 		newDataset.append(newRow)
 	return newDataset
 
-def getXYRangeLocations(dataset, solution, landmark):
+def getXYRangeLocations(dataset, landmark, solution = False):
 	xs = []
 	ys = []
 	for i in range(len(dataset)):
 		if(dataset[i][1] == landmark):
-			x = dataset[i][4] + solution[i][0]*np.cos(dataset[i][6] - solution[i][1])
-			y = dataset[i][5] + solution[i][0]*np.sin(dataset[i][6] - solution[i][1])
-			xs.append(x)
-			ys.append(y)
+			if(solution != False):
+				x = dataset[i][4] + solution[i][0]*np.cos(dataset[i][6] - solution[i][1])
+				y = dataset[i][5] + solution[i][0]*np.sin(dataset[i][6] - solution[i][1])
+				xs.append(x)
+				ys.append(y)
+			else:
+				x = dataset[i][4] + dataset[i][2]*np.cos(dataset[i][6] - dataset[i][3])
+				y = dataset[i][5] + dataset[i][2]*np.sin(dataset[i][6] - dataset[i][3])
+				xs.append(x)
+				ys.append(y)
 
 	return [xs, ys]
 
@@ -468,3 +482,93 @@ def sse(dataset1, dataset2):
 			sumTemp = sumTemp + ((dataset1[i][j] - dataset2[i][j])*(dataset1[i][j] - dataset2[i][j]))
 		sumSSE = sumSSE + sumTemp
 	return sumSSE
+
+def sseVector(dataset1, dataset2):
+	sumSSE = []
+	for j in range(len(dataset1[0])):
+		sumSSE.append(0)
+	for i in range(len(dataset1)):
+		for j in range(len(dataset1[i])):
+			sumSSE[j] = sumSSE[j] + ((dataset1[i][j] - dataset2[i][j])*(dataset1[i][j] - dataset2[i][j]))
+	return sumSSE
+
+
+
+##deadreckoning learning
+
+def createDRDataset(commandList, groundTruthList, randomize = False):
+	dataset = []
+	gt = groundTruthList
+	for i in range(len(commandList)-1):
+		dEntry = []
+		# dEntry.append(random.random())
+		dEntry.append(float(commandList[i][0]))
+		dEntry.append(float(commandList[i][1]))
+		dEntry.append(float(commandList[i][2]))
+
+		[myGroundTruth, gt] = getNearestGT2(float(commandList[i][0]), gt)
+		dEntry.append(myGroundTruth[1])
+		dEntry.append(myGroundTruth[2])
+		dEntry.append(myGroundTruth[3])
+
+		dEntry.append(float(commandList[i+1][0]) - float(commandList[i][0]))
+
+		[myGroundTruth2, gt2] = getNearestGT2(float(commandList[i+1][0]), gt, remove = False)
+		dEntry.append(myGroundTruth2[1])
+		dEntry.append(myGroundTruth2[2])
+		dEntry.append(myGroundTruth2[3])
+
+		dataset.append(dEntry)
+	if(randomize):
+		random.shuffle(dataset)
+		return dataset
+	else:
+		return dataset
+
+
+def getNearestGT2(time, groundTruth, remove = True):
+	minDelta = 100
+	index = 0
+	for i in range(len(groundTruth)):
+		if((time - float(groundTruth[i][0])) < minDelta and (time - float(groundTruth[i][0])) > 0):
+			minDelta = (time - float(groundTruth[i][0]))
+			index = i
+		elif((time - float(groundTruth[i][0])) < 0):
+			if(remove == True):
+				return [[float(groundTruth[i][0]), float(groundTruth[i][1]), float(groundTruth[i][2]), float(groundTruth[i][3])], groundTruth[i:]]
+			else:
+				return [[float(groundTruth[i][0]), float(groundTruth[i][1]), float(groundTruth[i][2]), float(groundTruth[i][3])], groundTruth]
+
+## createSensorNoiseDataset Function
+##
+##	input dataset of entires with the following format, ignores landmarks ids < 6
+##		0 Timestamp(of measurement)
+##		1 LandmarkID(of measurement)
+##		2 Range(of measurement)
+##		3 Heading(of measurement)
+##		4  GroundTruth X (nearest to timestamp)
+##		5 GroundTruth Y (nearest to timestamp)
+##		6 GroundTruth Orientation (nearest to timestamp)
+##		7 Landmark True X
+##		8 Landmark True Y
+##		Landmark True X Std Dev (optional)
+##		Landmark True Y Std Dev (optioanl)
+##
+##Input: 
+##		dataset of above format
+##			
+##Output:
+##		a list of target range/heading values
+
+def makeDeadTargetArray(dataset):
+	target = []
+	for entry in dataset:
+		target.append([entry[7], entry[8], entry[9]])
+	return target
+
+def getDeadTrainingData(dataset):
+	training = []
+	for entry in dataset:
+		training.append([entry[1], entry[2], entry[3], entry[4], entry[5], entry[6]])
+
+	return training
