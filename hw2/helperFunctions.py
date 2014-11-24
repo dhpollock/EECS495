@@ -397,13 +397,11 @@ def makeTargetArray(dataset):
 			tempOrin = tempOrin - 2*np.pi
 		elif(tempOrin < -np.pi):
 			tempOrin = tempOrin + 2*np.pi
-		targetBearing = tempOrin - np.arctan2([entry[8]-entry[5]], [entry[7]-entry[4]])[0]
-
+		targetBearing = np.arctan2([entry[8]-entry[5]], [entry[7]-entry[4]])[0] - tempOrin
 		if(targetBearing > np.pi):
 			targetBearing = targetBearing - 2*np.pi
 		elif(targetBearing < -np.pi):
 			targetBearing = targetBearing + 2*np.pi
-		# print(targetBearing)
 		target.append([targetRange, targetBearing])
 	return target
 
@@ -428,13 +426,13 @@ def getXYRangeLocations(dataset, landmark, solution = False):
 	for i in range(len(dataset)):
 		if(dataset[i][1] == landmark):
 			if(solution != False):
-				x = dataset[i][4] + solution[i][0]*np.cos(dataset[i][6] - solution[i][1])
-				y = dataset[i][5] + solution[i][0]*np.sin(dataset[i][6] - solution[i][1])
+				x = dataset[i][4] + solution[i][0]*np.cos(dataset[i][6] + solution[i][1])
+				y = dataset[i][5] + solution[i][0]*np.sin(dataset[i][6] + solution[i][1])
 				xs.append(x)
 				ys.append(y)
 			else:
-				x = dataset[i][4] + dataset[i][2]*np.cos(dataset[i][6] - dataset[i][3])
-				y = dataset[i][5] + dataset[i][2]*np.sin(dataset[i][6] - dataset[i][3])
+				x = dataset[i][4] + dataset[i][2]*np.cos(dataset[i][6] + dataset[i][3])
+				y = dataset[i][5] + dataset[i][2]*np.sin(dataset[i][6] + dataset[i][3])
 				xs.append(x)
 				ys.append(y)
 
@@ -463,10 +461,10 @@ def normalize(dataset, maxList):
 	maxs = []
 	normalizedList = []
 	for i in range(len(maxList)):
-		if(abs(maxList[i][0])> maxList[i][1]):
+		if(abs(maxList[i][0])> abs(maxList[i][1])):
 			maxs.append(abs(maxList[i][0]))
 		else:
-			maxs.append(maxList[i][1])
+			maxs.append(abs(maxList[i][1]))
 	for entry in dataset:
 		normalizedEntry = []
 		for i in range(len(entry)):

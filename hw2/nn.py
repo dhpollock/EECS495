@@ -46,7 +46,7 @@ class NeuralNetwork:
 						self.layers[j][k].updateDeltaWeights(lr, deltaOutput)
 						# self.layers[j][k].updateStochasticWeights(lr, deltaOutput)
 			self.updateWeights()
-			if(tempSSE > sse - .05):
+			if(tempSSE > sse - .005):
 				break
 			else:
 				sse = tempSSE
@@ -69,11 +69,13 @@ class NeuralNetwork:
 					self.layers[self.outputIndex][j].delta = curOutput[j]*(1 - curOutput[j])*(targetData[i][j] - curOutput[j])
 				tempSSE = tempSSE + deltaOutput*deltaOutput
 
-				for j in range(self.outputIndex-1, -1, -1):
+				self.updateBPWeights(lr, self.layers[self.outputIndex-1], self.layers[self.outputIndex])
+
+				for j in range(self.outputIndex-2, -1, -1):
 					for k in range(len(self.layers[j])):
 						self.layers[j][k].updateBPDelta(self.layers[j+1])
 
-				self.updateBPWeights(lr)
+						self.layers[j][k].updateBPWeights(lr, self.layers[j+1])
 
 			if(interCount == maxIter-1):
 				print("passed maxIter")
@@ -84,7 +86,7 @@ class NeuralNetwork:
 			if(tempSSE > sse+1000):
 				print("breaking --- run away")
 				break
-			if(sse - tempSSE < targetSSE/200.0):
+			if(sse - tempSSE < targetSSE/2000.0):
 				tempCounter = tempCounter+1
 				# if(tempSSE > sse):
 				# 	tempCounter = 0
@@ -135,10 +137,9 @@ class NeuralNetwork:
 		for i in range(len(self.layers)):
 			for j in range(len(self.layers[i])):
 				self.layers[i][j].updateWeights()
-	def updateBPWeights(self, lr):
-		for i in range(len(self.layers)-1):
-			for j in range(len(self.layers[i])):
-				self.layers[i][j].updateBPWeights(lr, self.layers[i+1])
+	def updateBPWeights(self, lr, layer, nextLayer):
+			for j in range(len(layer)):
+				layer[j].updateBPWeights(lr, nextLayer)
 	def resetBPDeltaValues(self):
 		for i in range(len(self.layers)):
 			for j in range(len(self.layers[i])):
@@ -188,3 +189,5 @@ class Preceptron:
 			# 	self.listofWeights[i] = -100000000000
 			# elif(abs(self.listofWeights[i]) >10000000000):
 			# 	self.listofWeights[i] = 100000000000
+
+
