@@ -115,8 +115,8 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 
 	##Run NN on simple sine function
 	myLen = 20
-	x = np.linspace(-1,1,myLen)
-	y = np.sin(x)*.5
+	x = np.linspace(-np.pi,np.pi,myLen)
+	y = np.sin(x)*.5+1
 	# print y
 
 	myInput = [[float(i)] for i in x]
@@ -124,16 +124,36 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 	
 	myInputMinMax = getListMinMax(myInput)
 	myTargetMinMax = getListMinMax(myTarget)
-	myInputNorm = normalize(myInput,myTargetMinMax)
-	myTargetNorm = normalize(myTarget, myTargetMinMax)
-	net = NeuralNetwork([1, 10,1])
-	error = net.trainBP(myInput, myTarget, targetSSE= .1, lr = 1.0, maxIter = 500)
+
+	# totalminMaxSet = []
+
+	# for i in range(len(myInputMinMax)):
+	# 	totalminMax  = []
+	# 	if(myInputMinMax[i][0] < myTargetMinMax[i][0]):
+	# 		totalminMax.append(myInputMinMax[i][0])
+	# 	else:
+	# 		totalminMax.append(myTargetMinMax[i][0])
+	# 	if(myInputMinMax[i][1] < myTargetMinMax[i][1]):
+	# 		totalminMax.append(myTargetMinMax[i][1])
+	# 	else:
+	# 		totalminMax.append(myInputMinMax[i][1])
+	# 	totalminMaxSet.append(totalminMax)
+
+
+	myInputNorm = normalize(myInput,myInputMinMax)
+	myTargetNorm = normalize(myTarget, myInputMinMax)
+
+	net = NN([1, 10, 1])
+	error = net.trainBP(myInputNorm, myTargetNorm, targetSSE= .01, lr = .10, maxIter = 5000)
 
 	out = []
 
-	for inputVal in myInput:
+	for inputVal in myInputNorm:
 		out.append(net.computeOutput(inputVal))
 	print out
+
+	out = rescale(out, myInputMinMax)
+
 	fig = plt.figure()
 	ax = fig.add_subplot(111)
 	ax.plot(myInput, myTarget, 'ro', myInput, out, 'go')
@@ -142,7 +162,7 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 	ax.set_title("Sin Reading")
 
 	plt.show()
-
+	sys.exit()
 
 def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
@@ -202,7 +222,7 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	myInputNorm = normalize(myInput, totalminMaxSet)
 	minMaxDatasetNorm = getListMinMax(myInputNorm)
 
-
+	# print targetNorm
 
 	# myInput = np.linspace(0,1,20)
 	# target = myInput * 4.0
@@ -307,8 +327,8 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	# print error9
 	# print error10
 
-	net = NeuralNetwork([2,10,5,3, 2])
-	error = net.trainBP(myInputNorm, targetNorm, targetSSE=10, lr = 1.0)
+	net = NeuralNetwork([2,10, 2])
+	error = net.trainBP(myInputNorm, targetNorm, targetSSE=40, lr = .1)
 	out5 = []
 	for datapt in myInputNorm:
 		out5.append(net.computeOutput(datapt))
