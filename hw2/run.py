@@ -115,8 +115,8 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 
 	##Run NN on simple sine function
 	myLen = 20
-	x = np.linspace(-np.pi,np.pi,myLen)
-	y = np.sin(x)*.5+1
+	x = np.linspace(0, 1,myLen)
+	y = [i*i for i in x]
 	# print y
 
 	myInput = [[float(i)] for i in x]
@@ -140,26 +140,32 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 	# 	totalminMaxSet.append(totalminMax)
 
 
-	myInputNorm = normalize(myInput,myInputMinMax)
-	myTargetNorm = normalize(myTarget, myInputMinMax)
+	# myInputNorm = normalize(myInput,myInputMinMax)
+	# myTargetNorm = normalize(myTarget, myTargetMinMax)
 
-	net = NN([1, 10, 1])
-	error = net.trainBP(myInputNorm, myTargetNorm, targetSSE= .01, lr = .10, maxIter = 5000)
+	# print myInputNorm
+	# print myTargetNorm
+
+	print myInput
+	print myTarget
+
+	net = NN([1, 10,5, 1])
+	error = net.trainBP(myInput, myTarget, targetSSE= .01, lr = 1.0, maxIter = 10000)
 
 	out = []
 
-	for inputVal in myInputNorm:
+	for inputVal in myInput:
 		out.append(net.computeOutput(inputVal))
 	print out
 
-	out = rescale(out, myInputMinMax)
+	# out = rescale(out, myTargetMinMax)
 
 	fig = plt.figure()
 	ax = fig.add_subplot(111)
 	ax.plot(myInput, myTarget, 'ro', myInput, out, 'go')
 	ax.set_xlabel('X')
 	ax.set_ylabel('Y')
-	ax.set_title("Sin Reading")
+	ax.set_title("X-Squared Learning")
 
 	plt.show()
 	sys.exit()
@@ -327,8 +333,8 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	# print error9
 	# print error10
 
-	net = NeuralNetwork([2,10, 2])
-	error = net.trainBP(myInputNorm, targetNorm, targetSSE=40, lr = .1)
+	net = NN([2,10,5, 2])
+	error = net.trainBP(myInputNorm, targetNorm, targetSSE=50, lr = 1.0, maxIter = 7000)
 	out5 = []
 	for datapt in myInputNorm:
 		out5.append(net.computeOutput(datapt))
