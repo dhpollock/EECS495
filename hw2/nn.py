@@ -373,7 +373,7 @@ class NN:
 				self.layers[i][j].value = 0
 
 
-	def trainBP(self, myInput, myTarget, lr = 0.1, maxIter = 500, targetSSE = 1.0):
+	def trainBP(self, myInput, myTarget, lr = 0.1, maxIter = 500, targetSSE = 1.0, show = 100):
 		sse = 10000000
 		interCount = 0
 		tempCounter = 0
@@ -452,7 +452,7 @@ class NN:
 			sse = tempSSE
 			interCount = interCount + 1
 
-			if(interCount % 100 == 0):
+			if(interCount % show == 0):
 				printHelp = True
 				print sse
 		return sse
