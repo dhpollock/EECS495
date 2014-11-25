@@ -115,15 +115,17 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 
 	##Run NN on simple sine function
 	myLen = 20
-	x = np.linspace(0, 1,myLen)
+	x = np.linspace(0,1,myLen)
+	# x = np.linspace(-np.pi, np.pi,myLen)
 	y = [i*i for i in x]
+	# y = np.sin(x)*.5+1
 	# print y
 
 	myInput = [[float(i)] for i in x]
 	myTarget = [[float(i)] for i in y]
 	
-	myInputMinMax = getListMinMax(myInput)
-	myTargetMinMax = getListMinMax(myTarget)
+	# myInputMinMax = getListMinMax(myInput)
+	# myTargetMinMax = getListMinMax(myTarget)
 
 	# totalminMaxSet = []
 
@@ -146,11 +148,11 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 	# print myInputNorm
 	# print myTargetNorm
 
-	print myInput
-	print myTarget
+	# print myInput
+	# print myTarget
 
-	net = NN([1, 10,5, 1])
-	error = net.trainBP(myInput, myTarget, targetSSE= .01, lr = 1.0, maxIter = 10000)
+	net = NN([1,5,1])
+	error = net.trainBP(myInput, myTarget, targetSSE= .01, lr = 1.0, maxIter = 10000, show=10)
 
 	out = []
 
@@ -165,7 +167,7 @@ def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 	ax.plot(myInput, myTarget, 'ro', myInput, out, 'go')
 	ax.set_xlabel('X')
 	ax.set_ylabel('Y')
-	ax.set_title("X-Squared Learning")
+	ax.set_title("Sine Learning")
 
 	plt.show()
 	sys.exit()
@@ -333,7 +335,7 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	# print error9
 	# print error10
 
-	net = NN([2,10,5, 2])
+	net = NN([2,10, 2])
 	error = net.trainBP(myInputNorm, targetNorm, targetSSE=50, lr = 1.0, maxIter = 7000)
 	out5 = []
 	for datapt in myInputNorm:
