@@ -355,7 +355,16 @@ def createSensorNoiseDataset(measurementList, groundTruthList, barcodes, randomi
 	else:
 		return dataset
 
-
+# getNearestGT
+##
+##	get the nearest groudtruth measurement given a timestamp
+##
+##Input: 
+##		a time value
+##		list of groundtruths
+##			
+##Output:
+##		[[gtX-coordiante, gtY-coordiante, gtOrienation], list of groundtruths AFTER timestamp]
 def getNearestGT(time, groundTruth):
 	minDelta = 100
 	index = 0
@@ -366,9 +375,9 @@ def getNearestGT(time, groundTruth):
 		elif((time - float(groundTruth[i][0])) < 0):
 			return [[float(groundTruth[i][0]), float(groundTruth[i][1]), float(groundTruth[i][2]), float(groundTruth[i][3])], groundTruth[i:]]
 
-## createSensorNoiseDataset Function
+## makeTargetArray Function
 ##
-##	input dataset of entires with the following format, ignores landmarks ids < 6
+##	create a target dataset from a given data, which was defined above as:
 ##		0 Timestamp(of measurement)
 ##		1 LandmarkID(of measurement)
 ##		2 Range(of measurement)
@@ -405,6 +414,16 @@ def makeTargetArray(dataset):
 		target.append([targetRange, targetBearing])
 	return target
 
+# rescale
+##
+##	rescale a dataset give a minMaxList
+##
+##Input: 
+##		a dataset
+##		list of [min, max] values for each variable in the dataset
+##			
+##Output:
+##		a dataset(scaled by the largest abs(min/max) value)
 def rescale(dataset, minMaxList):
 	newDataset= []
 	scale = []
@@ -420,6 +439,17 @@ def rescale(dataset, minMaxList):
 		newDataset.append(newRow)
 	return newDataset
 
+# getXYRangeLocations
+##
+##	determines the X,Y locations for a landmark placement 
+##
+##Input: 
+##		a dataset
+##		a lankdmark ID
+##		optional* a solution if desired placement is something other then true (ie measurement, measurement prediciton)
+##			
+##Output:
+##		[x-coordinate, y-coordinate]
 def getXYRangeLocations(dataset, landmark, solution = False):
 	xs = []
 	ys = []
@@ -438,6 +468,16 @@ def getXYRangeLocations(dataset, landmark, solution = False):
 
 	return [xs, ys]
 
+
+## getListMinMax
+##
+##	gets in the min and max value for each variable in a dataset
+##
+##Input: 
+##		a list of number lists (dataset)
+##			
+##Output:
+##		a list of min/max values for each variable in the dataset
 def getListMinMax(dataset):
 	minMax = []
 	for item in dataset[0]:
@@ -450,6 +490,15 @@ def getListMinMax(dataset):
 				minMax[i][1] = entry[i]
 	return minMax
 
+## getTrainingData
+##
+##	creats a trainging dataset from a larger dataset
+##
+##Input: 
+##		a list of number lists 
+##			
+##Output:
+##		a list of selected numbers in lists 
 def getTrainingData(dataset):
 	training = []
 	for entry in dataset:
@@ -457,6 +506,16 @@ def getTrainingData(dataset):
 
 	return training
 
+## normalize Function
+##
+##	nomarlizes an dataset for a given minMaxList
+##
+##Input: 
+##		a list of number lists 
+##		a list of of lists with minMax values for each variable in the data set 
+##			
+##Output:
+##		a list of number lists that is normalized
 def normalize(dataset, maxList):
 	maxs = []
 	normalizedList = []
@@ -472,101 +531,64 @@ def normalize(dataset, maxList):
 		normalizedList.append(normalizedEntry)
 	return normalizedList
 
+## sseVector Function
+##
+##	calculate the SSE for all the variables
+##
+##Input: 
+##		a list of number lists that matches size
+##		a list of number lists that matches size
+##			
+##Output:
+##		a SSE value for the entire array
 def sse(dataset1, dataset2):
 	sumSSE = 0
 	for i in range(len(dataset1)):
 		sumTemp = 0
 		for j in range(len(dataset1[i])):
 			sumTemp = sumTemp + ((dataset1[i][j] - dataset2[i][j])*(dataset1[i][j] - dataset2[i][j]))
-		sumSSE = sumSSE + sumTemp
+		sumSSE += sumTemp
 	return sumSSE
 
+## sseVector Function
+##
+##	calculate the SSE for each variable in the vectors
+##
+##Input: 
+##		a list of number lists that matches size
+##		a list of number lists that matches size
+##			
+##Output:
+##		a list of the SSE for each variable error
 def sseVector(dataset1, dataset2):
 	sumSSE = []
 	for j in range(len(dataset1[0])):
 		sumSSE.append(0)
 	for i in range(len(dataset1)):
 		for j in range(len(dataset1[i])):
-			sumSSE[j] = sumSSE[j] + ((dataset1[i][j] - dataset2[i][j])*(dataset1[i][j] - dataset2[i][j]))
+			sumSSE[j] += ((dataset1[i][j] - dataset2[i][j])*(dataset1[i][j] - dataset2[i][j]))
 	return sumSSE
 
-
-
-##deadreckoning learning
-
-def createDRDataset(commandList, groundTruthList, randomize = False):
-	dataset = []
-	gt = groundTruthList
-	for i in range(len(commandList)-1):
-		dEntry = []
-		# dEntry.append(random.random())
-		dEntry.append(float(commandList[i][0]))
-		dEntry.append(float(commandList[i][1]))
-		dEntry.append(float(commandList[i][2]))
-
-		[myGroundTruth, gt] = getNearestGT2(float(commandList[i][0]), gt)
-		dEntry.append(myGroundTruth[1])
-		dEntry.append(myGroundTruth[2])
-		dEntry.append(myGroundTruth[3])
-
-		dEntry.append(float(commandList[i+1][0]) - float(commandList[i][0]))
-
-		[myGroundTruth2, gt2] = getNearestGT2(float(commandList[i+1][0]), gt, remove = False)
-		dEntry.append(myGroundTruth2[1])
-		dEntry.append(myGroundTruth2[2])
-		dEntry.append(myGroundTruth2[3])
-
-		dataset.append(dEntry)
-	if(randomize):
-		random.shuffle(dataset)
-		return dataset
-	else:
-		return dataset
-
-
-def getNearestGT2(time, groundTruth, remove = True):
-	minDelta = 100
-	index = 0
-	for i in range(len(groundTruth)):
-		if((time - float(groundTruth[i][0])) < minDelta and (time - float(groundTruth[i][0])) > 0):
-			minDelta = (time - float(groundTruth[i][0]))
-			index = i
-		elif((time - float(groundTruth[i][0])) < 0):
-			if(remove == True):
-				return [[float(groundTruth[i][0]), float(groundTruth[i][1]), float(groundTruth[i][2]), float(groundTruth[i][3])], groundTruth[i:]]
-			else:
-				return [[float(groundTruth[i][0]), float(groundTruth[i][1]), float(groundTruth[i][2]), float(groundTruth[i][3])], groundTruth]
-
-## createSensorNoiseDataset Function
+## meanNstddevVector Function
 ##
-##	input dataset of entires with the following format, ignores landmarks ids < 6
-##		0 Timestamp(of measurement)
-##		1 LandmarkID(of measurement)
-##		2 Range(of measurement)
-##		3 Heading(of measurement)
-##		4  GroundTruth X (nearest to timestamp)
-##		5 GroundTruth Y (nearest to timestamp)
-##		6 GroundTruth Orientation (nearest to timestamp)
-##		7 Landmark True X
-##		8 Landmark True Y
-##		Landmark True X Std Dev (optional)
-##		Landmark True Y Std Dev (optioanl)
+##	calculate the mean of the error between two datasets in vector fashion
 ##
 ##Input: 
-##		dataset of above format
+##		a list of number lists that matches size
+##		a list of number lists that matches size
 ##			
 ##Output:
-##		a list of target range/heading values
+##		a list for the errors and the std dev for each variable
+def meanNstddevVector(dataset1, dataset2):
+	errorVector = []
+	for i in range(len(dataset1[0])):
+		varError = []
+		for j in range(len(dataset1)):
+			varError.append(dataset2[j][i]-dataset1[j][i])
+		errorVector.append(varError)
 
-def makeDeadTargetArray(dataset):
-	target = []
-	for entry in dataset:
-		target.append([entry[7], entry[8], entry[9]])
-	return target
+	results = []
+	for errorList in errorVector:
+		results.append([np.mean(errorList), np.std(errorList)])
+	return results
 
-def getDeadTrainingData(dataset):
-	training = []
-	for entry in dataset:
-		training.append([entry[1], entry[2], entry[3], entry[4], entry[5], entry[6]])
-
-	return training

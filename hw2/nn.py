@@ -8,6 +8,213 @@
 import random
 import numpy as np
 
+class NN:
+
+	## __init__ Function
+	##
+	##	Init the NN class, basically create the structure
+	##
+	##Input: 
+	##		a list of layer sizes, starting at input, hidden, ..., hidden, output
+	##Output:
+	##		N/A
+	def __init__(self, structureList):
+		self.layers = []
+		self.inputIndex = 0
+		self.outputIndex = len(structureList)-1
+
+		##Create the Input Nodes, no weights here
+		outputLayer = []
+		for i in range(structureList[0]):
+			outputLayer.append(BPPerceptron(0))
+		self.layers.append(outputLayer)
+
+		##Create the hidden layers and the output nodes
+		for i in range(1,len(structureList)):
+			curLayer = []
+			for j in range(structureList[i]):
+				curLayer.append(BPPerceptron(structureList[i-1]))
+			self.layers.append(curLayer)
+
+	## computeOutput Function
+	##
+	##	feedfoward prediction for a given input array
+	##
+	##Input: 
+	##		a list of inputs, needs to be a list of numbers the same size as the input layer
+	##Output:
+	##		a list of output values, will be a list of numbers the same size as the output layer
+	def computeOutput(self, myInput):
+
+		## Reset all the node values
+		self.resetValues()
+
+		## Seed the input values into the NN 
+		for i in range(len(myInput)):
+			self.layers[0][i].value = myInput[i]
+
+		## Feed foward the input values through the NN
+		for i in range(1, len(self.layers)):
+			for j in range(len(self.layers[i])):
+
+				## Incorporate the Bias
+				mySum = self.layers[i][j].bias*1
+				for k in range(len(self.layers[i][j].weights)):
+					## Incorporate the weights
+					mySum += self.layers[i][j].weights[k]*self.layers[i-1][k].value
+
+				## Apply the sum of bias and weights to the sigmoid function
+				self.layers[i][j].value = 1/(1+ np.exp(-1*mySum)) 
+
+		## Output the NN output layer
+		output = []
+		for node in self.layers[self.outputIndex]:
+			output.append(node.value)
+		return output
+
+	## resetValues Function
+	##
+	##	sets all the perceptrons nodes value to zero
+	##
+	##Input: 
+	##		N/A
+	##Output:
+	##		N/A
+	def resetValues(self):
+		for i in range(len(self.layers)):
+			for j in range(len(self.layers[i])):
+				self.layers[i][j].value = 0
+
+	## trainBP Function
+	##
+	##	Train the NN using back-progagation of the error
+	##
+	##Input: 
+	##		a dataset of input instances
+	##		a dataset of target instances
+	##		optional* lr, learning rate factor
+	##		optional* maxIter, max interation limit, termination condition
+	##		optional* targetSSE, termination condition
+	##		optional* show, when to print out the current SSE value
+	##Output:
+	##		a list of output values, will be a list of numbers the same size as the output layer
+	def trainBP(self, myInput, myTarget, lr = 0.1, maxIter = 500, targetSSE = 1.0, show = 100):
+		
+		## Init Help Variables
+		sse = 10000000
+		interCount = 0
+		tempCounter = 0
+
+		## Continue to interate until a termination condition is met
+		while(sse > targetSSE and interCount < maxIter):
+
+			## Update delta values for each training instance
+			for i in range(len(myInput)):
+				curOutput = self.computeOutput(myInput[i])
+
+				for j in range(len(self.layers[self.outputIndex])):
+						## Cacluate Errors on Output Neurons
+						self.layers[self.outputIndex][j].delta = float(self.layers[self.outputIndex][j].value)*(1 - float(self.layers[self.outputIndex][j].value))*(float(myTarget[i][j]) - float(self.layers[self.outputIndex][j].value))
+						
+						## Ignore -- updating weights after delta updates
+						## Update Weight for output Neurons 
+						# self.layers[self.outputIndex][j].bias += lr*self.layers[self.outputIndex][j].delta
+						# for k in range(len(self.layers[self.outputIndex][j].weights)):
+						# 	self.layers[self.outputIndex][j].weights[k] +=  lr*self.layers[self.outputIndex][j].delta*self.layers[self.outputIndex-1][k].value
+
+
+				
+				## Update delta values for hidden layers
+				for l in range(self.outputIndex-1, 0, -1):
+					##Update Hidden Layer Errors 
+					for j in range(len(self.layers[l])):
+						deltaSum = 0
+						for k in range(len(self.layers[l+1])):
+							deltaSum += self.layers[l+1][k].delta*self.layers[l+1][k].weights[j]
+						self.layers[l][j].delta = self.layers[l][j].value*(1-self.layers[l][j].value)*deltaSum
+					
+					## Ignore -- updating weights after delta updates
+					##Update Hidden Layer Weights 
+					# for j in range(len(self.layers[l])):
+					# 	self.layers[l][j].bias += lr*self.layers[l][j].delta
+					# 	for k in range(len(self.layers[l][j].weights)):
+					# 		self.layers[l][j].weights[k] += lr*self.layers[l][j].delta*self.layers[l-1][k].value
+
+				##UPDATE WEIGHTS AFTER DELTA WEIGHTS
+				for j in range(len(curOutput)):
+					self.layers[self.outputIndex][j].bias += lr*self.layers[self.outputIndex][j].delta
+					for k in range(len(self.layers[self.outputIndex][j].weights)):
+						self.layers[self.outputIndex][j].weights[k] +=  lr*self.layers[self.outputIndex][j].delta*self.layers[self.outputIndex-1][k].value
+
+				for l in range(self.outputIndex-1, 0, -1):
+					for j in range(len(self.layers[l])):
+						self.layers[l][j].bias = self.layers[l][j].bias + lr*self.layers[l][j].delta
+						for k in range(len(self.layers[l][j].weights)):
+							self.layers[l][j].weights[k] += lr*self.layers[l][j].delta*self.layers[l-1][k].value
+
+			## Calculate the SSE for this training Iteration
+			tempSSE = 0
+			for i in range(len(myInput)):
+				curOutput = self.computeOutput(myInput[i])
+				for j in range(len(curOutput)):
+					tempSSE += (myTarget[i][j] - curOutput[j])*(myTarget[i][j] - curOutput[j])
+			sse = tempSSE
+
+			## Deal with Termination Conditions
+			interCount = interCount + 1
+			if(interCount == maxIter-1):
+				print("Passed Max Iteration Count")
+			if(tempSSE < targetSSE):
+				print("Reached Target SSE")
+			if(tempSSE > sse):
+				tempCounter = 0
+			if(tempSSE > sse+1000):
+				print("Breaking -- SSE Values Running Away")
+				break
+
+			## Convergence Condition, TRY NOT TO USE
+			# if(sse - tempSSE < .0000000001):
+			# 	tempCounter = tempCounter+1
+			# 	if(tempCounter > 15):
+			# 		print "End Condition -- breaking"
+			# 		break
+			
+			## Update helper variables
+			sse = tempSSE
+			interCount = interCount + 1
+
+			## Print Out SSE on a periodic basis
+			if(interCount % show == 0):
+				printHelp = True
+				print"Current SSE: ", sse
+
+		## Output final SSE
+		return sse
+
+class BPPerceptron:
+
+	## __init__ Function
+	##
+	##	Init the BPPerceptron class, basically create data structure class
+	##
+	##Input: 
+	##		a number of connections to other BPPerceptrons for weights
+	##Output:
+	##		N/A
+	def __init__(self, connections):
+		self.value = 0
+		self.weights = []
+		self.delta = 0
+		self.bias = .0005*(.5-np.random.random())
+
+		for i in range(connections):
+			self.weights.append(.0005*(.5-np.random.random()))
+
+
+
+
+###=====OLD CODE, Please Ignore, kept for refernce sake======###
+
 # class NeuralNetwork:
 
 # 	def __init__(self, structureList):
@@ -327,144 +534,4 @@ import numpy as np
 # 				self.listofWeights[i] = -100000000000
 # 			elif(abs(self.listofWeights[i]) >10000000000):
 # 				self.listofWeights[i] = 100000000000
-
-
-class NN:
-	def __init__(self, structureList):
-		self.layers = []
-		self.inputIndex = 0
-		self.outputIndex = len(structureList)-1
-
-		outputLayer = []
-		for i in range(structureList[0]):
-			outputLayer.append(BPPerceptron(0))
-		self.layers.append(outputLayer)
-
-		for i in range(1,len(structureList)):
-			curLayer = []
-			for j in range(structureList[i]):
-				curLayer.append(BPPerceptron(structureList[i-1]))
-			self.layers.append(curLayer)
-	def computeOutput(self, myInput):
-		self.resetValues()
-		for i in range(len(myInput)):
-			self.layers[0][i].value = myInput[i]
-		for i in range(1, len(self.layers)):
-			for j in range(len(self.layers[i])):
-				mySum = self.layers[i][j].bias*1
-				for k in range(len(self.layers[i][j].weights)):
-					mySum += self.layers[i][j].weights[k]*self.layers[i-1][k].value
-
-				self.layers[i][j].value = 1/(1+ np.exp(-1*mySum)) 
-				# if(self.layers[i][j].value > 100000000000):
-				# 	self.layers[i][j].value =100000000000
-				# elif(self.layers[i][j].value < -100000000000):
-				# 	self.layers[i][j].value = -100000000000
-				# if(abs(self.layers[i][j].value) < .00000000001):
-				# 	self.layers[i][j].value  = 0
-		output = []
-		for node in self.layers[self.outputIndex]:
-			output.append(node.value)
-		return output
-
-	def resetValues(self):
-		for i in range(len(self.layers)):
-			for j in range(len(self.layers[i])):
-				self.layers[i][j].value = 0
-
-
-	def trainBP(self, myInput, myTarget, lr = 0.1, maxIter = 500, targetSSE = 1.0, show = 100):
-		sse = 10000000
-		interCount = 0
-		tempCounter = 0
-		printHelp = True
-		while(sse > targetSSE and interCount < maxIter):
-
-			for i in range(len(myInput)):
-				curOutput = self.computeOutput(myInput[i])
-
-				##Cacluate SSE for data point 
-				for j in range(len(self.layers[self.outputIndex])):
-						## Cacluate Errors on Output Neurons
-						self.layers[self.outputIndex][j].delta = float(self.layers[self.outputIndex][j].value)*(1 - float(self.layers[self.outputIndex][j].value))*(float(myTarget[i][j]) - float(self.layers[self.outputIndex][j].value))
-						##Update Weight for output Neurons
-
-						# self.layers[self.outputIndex][j].bias += lr*self.layers[self.outputIndex][j].delta
-						# for k in range(len(self.layers[self.outputIndex][j].weights)):
-						# 	self.layers[self.outputIndex][j].weights[k] +=  lr*self.layers[self.outputIndex][j].delta*self.layers[self.outputIndex-1][k].value
-
-
-				
-
-				for l in range(self.outputIndex-1, 0, -1):
-					##Update Hidden Layer Errors 
-					for j in range(len(self.layers[l])):
-						deltaSum = 0
-						for k in range(len(self.layers[l+1])):
-							deltaSum += self.layers[l+1][k].delta*self.layers[l+1][k].weights[j]
-							# print deltaSum
-						self.layers[l][j].delta = self.layers[l][j].value*(1-self.layers[l][j].value)*deltaSum
-					##Update Hidden Layer Weights 
-					# for j in range(len(self.layers[l])):
-					# 	self.layers[l][j].bias += lr*self.layers[l][j].delta
-					# 	for k in range(len(self.layers[l][j].weights)):
-					# 		self.layers[l][j].weights[k] += lr*self.layers[l][j].delta*self.layers[l-1][k].value
-
-				##UPDATE WEIGHTS AFTER?
-				for j in range(len(curOutput)):
-					self.layers[self.outputIndex][j].bias += lr*self.layers[self.outputIndex][j].delta
-					for k in range(len(self.layers[self.outputIndex][j].weights)):
-						self.layers[self.outputIndex][j].weights[k] +=  lr*self.layers[self.outputIndex][j].delta*self.layers[self.outputIndex-1][k].value
-
-				for l in range(self.outputIndex-1, 0, -1):
-					for j in range(len(self.layers[l])):
-						self.layers[l][j].bias = self.layers[l][j].bias + lr*self.layers[l][j].delta
-						# deltaW = 0
-						for k in range(len(self.layers[l][j].weights)):
-							# deltaW += 
-							self.layers[l][j].weights[k] += lr*self.layers[l][j].delta*self.layers[l-1][k].value
-						# if(printHelp):
-				# 			print(self.layers[l][j].weights)
-				# printHelp = False
-
-			tempSSE = 0
-			for i in range(len(myInput)):
-				curOutput = self.computeOutput(myInput[i])
-				for j in range(len(curOutput)):
-					tempSSE += (myTarget[i][j] - curOutput[j])*(myTarget[i][j] - curOutput[j])
-			sse = tempSSE
-
-			interCount = interCount + 1
-			if(interCount == maxIter-1):
-				print("passed maxIter")
-			if(tempSSE < targetSSE):
-				print("reached goal")
-			if(tempSSE > sse):
-				tempCounter = 0
-			if(tempSSE > sse+1000):
-				print("breaking --- run away")
-				break
-			# if(sse - tempSSE < .0000000000000000000001):
-			# 	tempCounter = tempCounter+1
-			# 	if(tempCounter > 15):
-			# 		print "End Condition -- breaking"
-			# 		break
-			sse = tempSSE
-			interCount = interCount + 1
-
-			if(interCount % show == 0):
-				printHelp = True
-				print sse
-		return sse
-
-class BPPerceptron:
-
-	def __init__(self, connections):
-		self.value = 0
-		self.weights = []
-		self.delta = 0
-		self.bias = .0005*(.5-np.random.random())
-
-		for i in range(connections):
-			self.weights.append(.0005*(.5-np.random.random()))
 

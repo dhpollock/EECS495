@@ -37,9 +37,6 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 	minMaxDataset = getListMinMax(myInput)
 	# targetMinMax = getListMinMax(target)
 	
-	# ##Normalize
-	# targetNorm = normalize(target, targetMinMax)
-	# myInputNorm = normalize(myInput, minMaxDataset)
 	if(removeOutlier):
 		count = 0
 		for i in range(len(myInput)):
@@ -65,152 +62,115 @@ def q1(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 	np.savetxt("target.csv", target, delimiter = ',')
 
 def q2(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, removeOutlier = False):
-	# ##Pull all the relevent data in to an array
-	# dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
+	##Pull all the relevent data in to an array
+	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
 	
-	# ##Create input and target arrays
-	# target = makeTargetArray(dataset)
-	# myInput = getTrainingData(dataset)
+	##Create input and target arrays
+	target = makeTargetArray(dataset)
+	myInput = getTrainingData(dataset)
 
-	# ##Find the min/max of each attribute of the sets in order to normalize
-	# minMaxDataset = getListMinMax(myInput)
-	# # targetMinMax = getListMinMax(target)
+	##Find the min/max of each attribute of the sets in order to normalize
+	minMaxDataset = getListMinMax(myInput)
+	# targetMinMax = getListMinMax(target)
 	
-	# # ##Normalize
-	# # targetNorm = normalize(target, targetMinMax)
-	# # myInputNorm = normalize(myInput, minMaxDataset)
-	# if(removeOutlier):
-	# 	count = 0
-	# 	for i in range(len(myInput)):
-	# 		if(target[i][1] < minMaxDataset[1][0]):
-	# 			dataset[i] = 0
-	# 			target[i] = 0
-	# 			myInput[i] = 0
-	# 			count = count+1
-	# 		elif(target[i][1] > minMaxDataset[1][1]):
-	# 			dataset[i] = 0
-	# 			target[i] = 0
-	# 			myInput[i] = 0
-	# 			count = count+1
-	# 	print "Outlier Count: ", count
-	# 	print "New Dataset Size w/o Outliers: ", len(myInput)
-	# 	dataset = [x for x in dataset if x !=0]
-	# 	myInput = [x for x in myInput if x !=0]
-	# 	target = [x for x in target if x !=0]
+	# ##Normalize
+	# targetNorm = normalize(target, targetMinMax)
+	# myInputNorm = normalize(myInput, minMaxDataset)
+	if(removeOutlier):
+		count = 0
+		for i in range(len(myInput)):
+			if(target[i][1] < minMaxDataset[1][0]):
+				dataset[i] = 0
+				target[i] = 0
+				myInput[i] = 0
+				count = count+1
+			elif(target[i][1] > minMaxDataset[1][1]):
+				dataset[i] = 0
+				target[i] = 0
+				myInput[i] = 0
+				count = count+1
+		print "Outlier Count: ", count
+		print "New Dataset Size w/o Outliers: ", len(myInput)
+		dataset = [x for x in dataset if x !=0]
+		myInput = [x for x in myInput if x !=0]
+		target = [x for x in target if x !=0]
 
 
-	# [landmarkX, landmarkY] = getXYRangeLocations(dataset, 15)
-	# [landmarkXgoal, landmarkYgoal] = getXYRangeLocations(dataset, 15, target)
+	[landmarkX, landmarkY] = getXYRangeLocations(dataset, 7, myInput)
+	[landmarkXgoal, landmarkYgoal] = getXYRangeLocations(dataset, 7, target)
 
- # 	##===Plotting Details===##
-	# fig = plt.figure()
-	# ax = fig.add_subplot(111)
-	# ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro', landmarkX, landmarkY, 'go', landmarkXgoal, landmarkYgoal, 'yo')
-	# # ax.legend([obstacle_line, obstacle_cell], ['True Obstacle', 'Obstacle Cell'])
-	# ax.set_xlabel('X Position (meters)')
-	# ax.set_ylabel('Y Position (meters)')
-	# ax.set_title("Sensor Reading")
+ 	##===Plotting Details===##
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
+	red_dot,red_dot,red_dot,green_dot,blue_dot = ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro', landmarkX, landmarkY, 'go', landmarkXgoal, landmarkYgoal, 'bo')
+	ax.legend([red_dot, green_dot, blue_dot], ['True Landmarks', 'Sensor Estimates of Selected Landmark', 'Selected Landmark'])
+	ax.set_xlabel('X Position (meters)')
+	ax.set_ylabel('Y Position (meters)')
+	ax.set_title("Sensor Reading")
 
-	# plt.show()
+	plt.show()
 
-	##Run NN on simple sine function
+	## Run NN on simple X^2 function
 	myLen = 20
 	x = np.linspace(0,1,myLen)
-	# x = np.linspace(-np.pi, np.pi,myLen)
 	y = [i*i for i in x]
-	# y = np.sin(x)*.5+1
-	# print y
 
+	## Reformat the data to be compatible with NN
 	myInput = [[float(i)] for i in x]
 	myTarget = [[float(i)] for i in y]
 	
-	# myInputMinMax = getListMinMax(myInput)
-	# myTargetMinMax = getListMinMax(myTarget)
-
-	# totalminMaxSet = []
-
-	# for i in range(len(myInputMinMax)):
-	# 	totalminMax  = []
-	# 	if(myInputMinMax[i][0] < myTargetMinMax[i][0]):
-	# 		totalminMax.append(myInputMinMax[i][0])
-	# 	else:
-	# 		totalminMax.append(myTargetMinMax[i][0])
-	# 	if(myInputMinMax[i][1] < myTargetMinMax[i][1]):
-	# 		totalminMax.append(myTargetMinMax[i][1])
-	# 	else:
-	# 		totalminMax.append(myInputMinMax[i][1])
-	# 	totalminMaxSet.append(totalminMax)
-
-
-	# myInputNorm = normalize(myInput,myInputMinMax)
-	# myTargetNorm = normalize(myTarget, myTargetMinMax)
-
-	# print myInputNorm
-	# print myTargetNorm
-
-	# print myInput
-	# print myTarget
-
+	## Create a simple NN
 	net = NN([1,5,1])
-	error = net.trainBP(myInput, myTarget, targetSSE= .01, lr = 1.0, maxIter = 10000, show=10)
 
+	## Train the NN!
+	error = net.trainBP(myInput, myTarget, targetSSE= .01, lr = 1.0, maxIter = 7000, show=10)
+
+	## Compute the Output
 	out = []
-
 	for inputVal in myInput:
 		out.append(net.computeOutput(inputVal))
 	print out
 
-	# out = rescale(out, myTargetMinMax)
-
+	##==Plotting Details==##
 	fig = plt.figure()
 	ax = fig.add_subplot(111)
-	ax.plot(myInput, myTarget, 'ro', myInput, out, 'go')
+	red_dot, green_dot = ax.plot(myInput, myTarget, 'ro', myInput, out, 'go')
+	ax.legend([red_dot, green_dot], ['True X-Squared', 'NN Approxmination'])
 	ax.set_xlabel('X')
 	ax.set_ylabel('Y')
-	ax.set_title("Sine Learning")
+	ax.set_title("X-Squared Learning")
 
 	plt.show()
-	sys.exit()
 
-def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
+def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, removeOutlier = False):
+
 	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
-	# dataset = createDRDataset(odometry, groundTruth, randomize = True)
 	target = makeTargetArray(dataset)
-	# target = makeDeadTargetArray(dataset)
 	myInput = getTrainingData(dataset)
-	# myInput = getDeadTrainingData(dataset)
 	minMaxDataset = getListMinMax(myInput)
-	print minMaxDataset
-	# print minMaxDataset
+
+	if(removeOutlier):
+		count = 0
+		for i in range(len(myInput)):
+			if(target[i][1] < minMaxDataset[1][0]):
+				dataset[i] = 0
+				target[i] = 0
+				myInput[i] = 0
+				count = count+1
+			elif(target[i][1] > minMaxDataset[1][1]):
+				dataset[i] = 0
+				target[i] = 0
+				myInput[i] = 0
+				count = count+1
+		dataset = [x for x in dataset if x !=0]
+		myInput = [x for x in myInput if x !=0]
+		target = [x for x in target if x !=0]
+		print "Outlier Count: ", count
+		print "New Dataset Size w/o Outliers: ", len(myInput)
 
 
-	count = 0
-	for i in range(len(myInput)):
-		if(target[i][1] < minMaxDataset[1][0]):
-			dataset[i] = 0
-			target[i] = 0
-			myInput[i] = 0
-			count = count+1
-		elif(target[i][1] > minMaxDataset[1][1]):
-			dataset[i] = 0
-			target[i] = 0
-			myInput[i] = 0
-			count = count+1
-	print "Outlier Count: ", count
-	print "New Dataset Size w/o Outliers: ", len(myInput)
-	dataset = [x for x in dataset if x !=0]
-	myInput = [x for x in myInput if x !=0]
-	target = [x for x in target if x !=0]
-
-	print len(myInput)
-	# ax.set_xlabel('X Position (meters)')
-	# ax.set_ylabel('Y Position (meters)')
-
-	# plt.show()
-
-
+	## Normalize the Input and Target Datasets by the same factor
 	targetMinMax = getListMinMax(target)
-	print targetMinMax
 
 	totalminMaxSet = minMaxDataset
 	totalminMaxSet = []
@@ -230,135 +190,84 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	myInputNorm = normalize(myInput, totalminMaxSet)
 	minMaxDatasetNorm = getListMinMax(myInputNorm)
 
-	# print targetNorm
-
-	# myInput = np.linspace(0,1,20)
-	# target = myInput * 4.0
-
-	# targetNormalize = target/4.0
-
-
-	# myInput2 = myInput.reshape(len(myInput), 1)
-	# target2 = targetNormalize.reshape(len(targetNormalize),1)
-
-
-	# print myInput2
-	# print target2
-
-	
-
-	# error1 = 0
-	# error2 = 0
-	# ##10fold cross validation
-	# crossfoldNum = 3
-	# inc = int(len(myInputNorm)/crossfoldNum)
-	# outNet = NeuralNetwork([2,3,2])
-	# for i in range(crossfoldNum):
-	# 	testRange = myInputNorm[i*inc:(i+1)*inc]
-	# 	inputRange = myInputNorm[0:i*inc] + myInputNorm[(i+1)*inc:]
-
-	# 	testTargetRange = targetNorm[i*inc:(i+1)*inc]
-	# 	inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
-	# 	# net = NeuralNetwork([2,10,2])
-	# 	net = NeuralNetwork([2, 10,  2])
-	# 	error = net.trainBP(inputRange, inputTargetRange, targetSSE=180, lr = 1.0)
-	# 	outNet = net
-	# 	out = []
-
-	# 	for testDataPt in testRange:
-	# 		out.append(net.computeOutput(testDataPt))
-
-	# # print out
 
 
 
-	# 	# rescaleOutput = rescale(out, targetMinMax)
+	resultsSSEXFold = [0,0]
+	resultsMeanXFold = [[0,0],[0,0]]
+	##====10fold cross validation====#
+	crossfoldNum = 10
+	inc = int(len(myInputNorm)/crossfoldNum)
+	outNet = NN([2,3,2])
+	for i in range(crossfoldNum):
+		testRange = myInputNorm[i*inc:(i+1)*inc]
+		inputRange = myInputNorm[0:i*inc] + myInputNorm[(i+1)*inc:]
 
-	# 	compError = sse([[row[0], row[1]] for row in testRange], testTargetRange)
-	# 	error1 = error1 + compError
-
-	# 	tempError = sse(out, testTargetRange)
-	# 	error2 = error2 + tempError
+		testTargetRange = targetNorm[i*inc:(i+1)*inc]
+		inputTargetRange = targetNorm[0:i*inc] + targetNorm[(i+1)*inc:]
+		net = NN([2,10,2])
+		net.trainBP(inputRange, inputTargetRange, targetSSE=460.0s, lr = 1.0, maxIter = 7000, show = 10)
+		outNet = net
 		
-	# 	print("==CrossCompleted==")
-	# 	print compError, tempError
+		out = []
+		for datapt in testRange:
+			out.append(net.computeOutput(datapt))
+		out = rescale(out, totalminMaxSet)
+		
+		resultsSSEXFold += sseVector(out, testTargetRange)
+		resultsMeanXFold += meanNstddevVector(out, testTargetRange)
 
 
-	# print("====DONE====")
-	# print error1
-	# print error2
 
-	# print (1-error2/error1)*100
 
-	# out2 = []
-	# for datapt in myInput:
-	# 	out2.append(outNet.computeOutput(datapt))
+	##===CODE FROM RUNNING NON CROSSFOLD===##
 
-	# error3 = sse(myInput, target)
-	# error4 = sse(out2, target)
-
-	# print("==General SSE error on actual set==")
-	# print error3
-	# print error4
-	# print (1-error4/error3)*100
-
-	# out3 = []
+	# net = NN([2,10, 2])
+	# error = net.trainBP(myInputNorm, targetNorm, targetSSE=460.0, lr = 1.0, maxIter = 7000, show = 10)
+	# output = []
 	# for datapt in myInputNorm:
-	# 	out3.append(outNet.computeOutput(datapt))
-	# error5 = sse(myInputNorm, targetNorm)
-	# error6 = sse(out3, targetNorm)
+	# 	output.append(outNet.computeOutput(datapt))
 
-	# print("==Normalized then Rescaled SSE error on actual set==")
-	# print error5
-	# print error6
-	# print (1-error6/error5)*100
+	# output = rescale(output, totalminMaxSet)
 
-	# print("==VECTOR WISE SSE NORMALIZED==")
-	# out4 = []
-	# for datapt in myInputNorm:
-	# 	out4.append(outNet.computeOutput(datapt))
-	# error7 = sseVector(myInputNorm, targetNorm)
-	# error8 = sseVector(out3, targetNorm)
-
-	# print("==Normalized then Rescaled SSE error on actual set==")
-	# print error7
-	# print error8
-
-	# print("==VECTOR WISE SSE NORMALIZED==")
-	# out5 = []
-	# for datapt in myInput:
-	# 	out5.append(outNet.computeOutput(datapt))
-	# error9 = sseVector(myInput, target)
-	# error10 = sseVector(out5, target)
-
-	# print("==Normalized then Rescaled SSE error on actual set==")
-	# print error9
-	# print error10
-
-	net = NN([2,10, 2])
-	error = net.trainBP(myInputNorm, targetNorm, targetSSE=50, lr = 1.0, maxIter = 7000)
-	out5 = []
-	for datapt in myInputNorm:
-		out5.append(net.computeOutput(datapt))
-
-	out5 = rescale(out5, totalminMaxSet)
-
-	for i in range(10, 21):
-		[landmarkX, landmarkY] = getXYRangeLocations(dataset, i)
-		[landmarkXgoal, landmarkYgoal] = getXYRangeLocations(dataset, i, target)
-		[landmarkXlearned, landmarkYlearned] = getXYRangeLocations(dataset, i, out5)
+	# for i in range(6, 21):
+	# 	[landmarkX, landmarkY] = getXYRangeLocations(dataset, i, myInput)
+	# 	[landmarkXgoal, landmarkYgoal] = getXYRangeLocations(dataset, i, target)
+	# 	[landmarkXlearned, landmarkYlearned] = getXYRangeLocations(dataset, i, output)
 
 
-	 	##===Plotting Details===##
-		fig = plt.figure()
-		ax = fig.add_subplot(111)
-		ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro', landmarkX, landmarkY, 'go', landmarkXlearned, landmarkYlearned, 'yo', landmarkXgoal, landmarkYgoal, 'bo')
-		# ax.legend([obstacle_line, obstacle_cell], ['True Obstacle', 'Obstacle Cell'])
-		ax.set_xlabel('X Position (meters)')
-		ax.set_ylabel('Y Position (meters)')
-		ax.set_title("Sensor Reading")
+	#  	##===Plotting Details===##
+	# 	fig = plt.figure()
+	# 	ax = fig.add_subplot(111)
+	# 	red_dot,red_dot,red_dot,green_dot,yellow_dot, blue_dot = ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro', landmarkX, landmarkY, 'go', landmarkXlearned, landmarkYlearned, 'yo', landmarkXgoal, landmarkYgoal, 'bo')
+	# 	ax.legend([red_dot, green_dot, yellow_dot, blue_dot], ['True Landmarks', 'Sensor Estimates of Selected Landmark','NN of Selected Landmark', 'Selected Landmark'])
+	# 	ax.set_xlabel('X Position (meters)')
+	# 	ax.set_ylabel('Y Position (meters)')
+	# 	ax.set_title("Sensor Reading")
 
-		plt.show()
+	# 	plt.show()
+
+	# print("==SSE For Actual Measuments vs Target Values==")
+	# results = sseVector(myInput, target)
+	# print "Range SSE: ", results[0], "Bearing SSE: ", results[1]
+	# print("\n")
+
+	# print("==SSE for NN Adjusted Measurements vs Target Values==")
+	# results = sseVector(output, target)
+	# print "Range SSE: ", results[0], "Bearing SSE: ", results[1]
+	# print("\n")
+	
+	# print("==Average Error and Std Deviation For Actual Measuments vs Target Values==")
+	# results = meanNstddevVector(myInput, target)
+	# print "Range Mean: ", results[0][0],"  Range Std Dev: ", results[0][1]
+	# print "Bearing Mean: ", results[1][0],"  Bearing Std Dev: ", results[1][1]
+	# print("\n")
+
+	# print("==Average Error and Std Deviation for NN Adjusted Measurements vs Target Values==")
+	# results = meanNstddevVector(output, target)
+	# print "Range Mean: ", results[0][0],"  Range Std Dev: ", results[0][1]
+	# print "Bearing Mean: ", results[1][0],"  Bearing Std Dev: ", results[1][1]
+	# print("\n")
 
 
 def extest(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
@@ -370,46 +279,11 @@ def extest(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 		print "Try <pip install neurolab> to install package"
 		return
 
-	# myLen = 20
-	# x = np.linspace(-1,1,myLen)
-	# y = np.sin(x)
-
-	# myInput = [[float(i)] for i in x]
-	# myTarget = [[float(i)] for i in y]
 	
-	# myInputMinMax = getListMinMax(myInput)
-	# myInputNorm = normalize(myInput,myInputMinMax)
-	# myInputMinMaxNorm = getListMinMax(myInputNorm)
-
-	# print myInput
-	# print myTarget
-	# print myInputNorm
-	# print myInputMinMax
-
-
-	# net = nl.net.newff(myInputMinMaxNorm, [5,2])
-	# error = net.train(myInputNorm, myTarget,epochs=500, show = 10, goal=.1)
-	# out = net.sim(testRange)
-
-	# fig = plt.figure()
-	# ax = fig.add_subplot(111)
-	# ax.plot(myInput, myTarget, 'ro', myInput, out, 'go')
-	# ax.set_xlabel('X')
-	# ax.set_ylabel('Y')
-	# ax.set_title("Sin Reading")
-
-	# plt.show()
-	# print out
-
 	dataset = createSensorNoiseDataset(measurement, groundTruth, barcodes, randomize = True)
-
 	target = makeTargetArray(dataset)
-
 	myInput = getTrainingData(dataset)
-
 	minMaxDataset = getListMinMax(myInput)
-	print minMaxDataset
-
 
 	count = 0
 	for i in range(len(myInput)):
@@ -449,23 +323,6 @@ def extest(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	targetNorm = normalize(target, totalminMaxSet)
 	myInputNorm = normalize(myInput, totalminMaxSet)
 	minMaxDatasetNorm = getListMinMax(myInputNorm)
-
-	# dataset = createDRDataset(odometry, groundTruth, randomize = True)
-	# target = makeDeadTargetArray(dataset)
-	# myInput = getDeadTrainingData(dataset)
-	# minMaxDataset = getListMinMax(myInput)
-	# print minMaxDataset
-
-
-	# targetMinMax = getListMinMax(target)
-	# print targetMinMax
-
-	# totalminMaxSet = minMaxDataset
-
-
-	# targetNorm = normalize(target, totalminMaxSet[3:6])
-	# myInputNorm = normalize(myInput, totalminMaxSet)
-	# minMaxDatasetNorm = getListMinMax(myInputNorm)
 
 	
 
@@ -514,7 +371,7 @@ def extest(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	net = nl.net.newff(totalminMaxSet, [10,5,3,2])
 	net.trainf = nl.train.train_bfgs
-	error = net.train(myInputNorm, targetNorm,epochs=300, show = 10, goal=20.0)
+	error = net.train(myInputNorm, targetNorm,epochs=300, show = 10, goal=10.0)
 
 	out2 = net.sim(myInputNorm)
 	output =  out2.tolist()
@@ -536,8 +393,8 @@ def extest(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 	 	##===Plotting Details===##
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
-		ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro', landmarkX, landmarkY, 'go', landmarkXlearned, landmarkYlearned, 'yo', landmarkXgoal, landmarkYgoal, 'bo')
-		# ax.legend([obstacle_line, obstacle_cell], ['True Obstacle', 'Obstacle Cell'])
+		red_dot,red_dot,red_dot,green_dot,yellow_dot, blue_dot = ax.plot(obstacle1.x, obstacle1.y, 'ro', obstacle2.x, obstacle2.y, 'ro', obstacle3.x, obstacle3.y, 'ro', landmarkX, landmarkY, 'go', landmarkXlearned, landmarkYlearned, 'yo', landmarkXgoal, landmarkYgoal, 'bo')
+		ax.legend([obstacle_line, obstacle_cell], ['True Obstacle', 'Obstacle Cell'])
 		ax.set_xlabel('X Position (meters)')
 		ax.set_ylabel('Y Position (meters)')
 		ax.set_title("Sensor Reading")
@@ -586,40 +443,20 @@ def extest(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement):
 
 	plt.show()
 
-	# Create train samples
-	x = np.linspace(-7, 7, 20)
-	y = np.sin(x) * 0.5
-
-	size = len(x)
-
-	inp = x.reshape(size,1)
-	tar = y.reshape(size,1)
-
-	# Create network with 2 layers and random initialized
-	net = nl.net.newff([[-7, 7]],[10,5,3,1])
-	net.trainf = nl.train.train_bfgs
-	# Train network
-	error = net.train(inp, tar, epochs=500, show=100, goal=0.02)
-
-	# Simulate network
-	out = net.sim(inp)
-
-	# Plot result
-	import pylab as pl
-	pl.subplot(211)
-	pl.plot(error)
-	pl.xlabel('Epoch number')
-	pl.ylabel('error (default SSE)')
-
-	x2 = np.linspace(-6.0,6.0,150)
-	y2 = net.sim(x2.reshape(x2.size,1)).reshape(x2.size)
-
-	y3 = out.reshape(size)
-
-	pl.subplot(212)
-	pl.plot(x2, y2, '-',x , y, '.', x, y3, 'p')
-	pl.legend(['train target', 'net output'])
-	pl.show()
+	print("SSE For Actual Measuments vs Target Values")
+	print sseVector(myInput, target)
+	print("Average Error and Std Deviation For Actual Measuments vs Target Values")
+	results = meanNstddevVector(myInput, target)
+	print "Range Mean: ", results[0][0],"  Range Std Dev: ", results[0][1]
+	print "Bearing Mean: ", results[1][0],"  Bearing Std Dev: ", results[1][1]
+	
+	print("SSE for NN Adjusted Measurements vs Target Values")
+	print sseVector(output, target)
+	print("Average Error and Std Deviation for NN Adjusted Measurements vs Target Values")
+	results = meanNstddevVector(output, target)
+	print "Range Mean: ", results[0][0],"  Range Std Dev: ", results[0][1]
+	print "Bearing Mean: ", results[1][0],"  Bearing Std Dev: ", results[1][1]
+	
 
 def main():
 
