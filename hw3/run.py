@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 ##Author: D. Harmon Pollock
@@ -212,66 +213,66 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 
 ##===CODE FROM RUNNING CROSSFOLD===##
 
-	error = []
+	# error = []
 
-	myTargetSSE = 0
+	# myTargetSSE = 0
 
-	crossfoldNum = 10
-	inc = int(len(myInputNorm)/crossfoldNum)
-	outNet = NN([3,15,15])
-	for i in range(crossfoldNum):
-		print"Computing CrossFold ", i+1
-		testRange = myInputNorm[i*inc:(i+1)*inc]
-		inputRange = myInput[0:i*inc] + myInput[(i+1)*inc:]
+	# crossfoldNum = 10
+	# inc = int(len(myInputNorm)/crossfoldNum)
+	# outNet = NN([3,15,15])
+	# for i in range(crossfoldNum):
+	# 	print"Computing CrossFold ", i+1
+	# 	testRange = myInputNorm[i*inc:(i+1)*inc]
+	# 	inputRange = myInput[0:i*inc] + myInput[(i+1)*inc:]
 
-		testTargetRange = target[i*inc:(i+1)*inc]
-		inputTargetRange = target[0:i*inc] + target[(i+1)*inc:]
-		net = NN([3,10,30,20,15])
+	# 	testTargetRange = target[i*inc:(i+1)*inc]
+	# 	inputTargetRange = target[0:i*inc] + target[(i+1)*inc:]
+	# 	net = NN([3,10,30,20,15])
 		
-		tempError = net.trainBP(inputRange, inputTargetRange, targetSSE=100, lr = .10, maxIter = 1000, show = 10)
-		outNet = net
-		out = []
-		for datapt in testRange:
-			out.append(outNet.computeOutput(datapt))
+	# 	tempError = net.trainBP(inputRange, inputTargetRange, targetSSE=100, lr = .10, maxIter = 1000, show = 10)
+	# 	outNet = net
+	# 	out = []
+	# 	for datapt in testRange:
+	# 		out.append(outNet.computeOutput(datapt))
 
-		negCount = 0
-		posCount = 0
-		negCorrectCount = 0
-		posCorrectCount = 0
-		for i in range(len(out)):
-			for j in range(len(out[i])):
-				if(target[i][j] >0):
-					posCount += 1
-				else:
-					negCount +=1
+	# 	negCount = 0
+	# 	posCount = 0
+	# 	negCorrectCount = 0
+	# 	posCorrectCount = 0
+	# 	for i in range(len(out)):
+	# 		for j in range(len(out[i])):
+	# 			if(target[i][j] >0):
+	# 				posCount += 1
+	# 			else:
+	# 				negCount +=1
 
-				if(out[i][j] >= 0.1):
-					posCorrectCount += 1
-				else:
-					negCorrectCount += 1
-		print "Positive Correct: ", posCorrectCount
-		print posCorrectCount/(posCount+0.000001)
-		print "Pos Count", posCount
-		print "Negtive Correct: ", negCorrectCount
-		print  negCorrectCount/(negCount+0.000001)
-		print "Neg Count", negCount
+	# 			if(out[i][j] >= 0.1):
+	# 				posCorrectCount += 1
+	# 			else:
+	# 				negCorrectCount += 1
+	# 	print "Positive Correct: ", posCorrectCount
+	# 	print posCorrectCount/(posCount+0.000001)
+	# 	print "Pos Count", posCount
+	# 	print "Negtive Correct: ", negCorrectCount
+	# 	print  negCorrectCount/(negCount+0.000001)
+	# 	print "Neg Count", negCount
 
- 		error.append([posCorrectCount/(posCount+0.000001), negCorrectCount/(negCount+0.000001)])
+ # 		error.append([posCorrectCount/(posCount+0.000001), negCorrectCount/(negCount+0.000001)])
 
-	print "==Cross Fold Error=="
-	print error
+	# print "==Cross Fold Error=="
+	# print error
 
 
 
 	# ##===CODE FROM RUNNING NON CROSSFOLD===##
 
 
-	# net = NN([3,15, 15])
-	# error = net.trainBP(myInputNorm, target, targetSSE=1.0, lr = 1.0, maxIter = 300, show = 10)
-	# out = []
-	# for datapt in myInputNorm:
-	# 	out.append(net.computeOutput(datapt))
-	# print out
+	net = NN([3,15, 15])
+	error = net.trainBP(myInputNorm, target, targetSSE=1.0, lr = 1.0, maxIter = 300, show = 10)
+	out = []
+	for datapt in myInputNorm:
+		out.append(net.computeOutput(datapt))
+	print out
 
 	negCount = 0
 	posCount = 0
@@ -288,6 +289,8 @@ def q3(barcodes, groundTruth, landmarkGroundtrush, odometry, measurement, remove
 				posCorrectCount += 1
 			else:
 				negCorrectCount += 1
+
+			
 	print "Positive Correct: ", posCorrectCount
 	print posCorrectCount/(posCount+0.000001)
 	print "Pos Count", posCount
